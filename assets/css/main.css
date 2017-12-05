@@ -284,6 +284,7 @@ pre {
   display:inline-block;
   padding: 0 5px;
   border-right:1px solid #ccc;
+  width: 100%;
 }
 
 .highlight pre code {
