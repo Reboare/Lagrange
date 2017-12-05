@@ -4,6 +4,10 @@ title:  "Privilege Escalation via lxd"
 date:   2017-09-27 00:00:00 +0100
 categories: [lxd]
 description: A super simple way to escalate if you find yourself a member of the lxd group
+image:
+  feature: lxd.jpg
+  credit:
+  creditlink:
 ---
 
 LXD is Ubuntu's container manager utilising linux containers.  It could be considered to act in the same sphere as docker, 
