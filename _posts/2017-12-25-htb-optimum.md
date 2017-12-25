@@ -75,7 +75,7 @@ Boom we have a shell!  Now lets escalate!
 
 Privilege Escalation - Method 1
 =======
-I spent a lot of time rooting (hehehehe) around on this box, but came to the conclusion that it absolutely had to be vulnerable to [MS16-032](https://www.rapid7.com/db/modules/exploit/windows/local/ms16_032_secondary_logon_handle_privesc), but couldn't for the life of me get it to work.  The device wasn't patched recently, and the exploit was famous for being fairly consistently, so in my head it had to work.  I tried the [powershell exploit](https://www.exploit-db.com/exploits/39719/) and the [metasploit one](https://www.rapid7.com/db/modules/exploit/windows/local/ms16_032_secondary_logon_handle_privesc), but nothing gave me a shell.  Hindsight is 20/20, and while I initially exploited it via , it's a good idea to see how both methods work.
+I spent a lot of time rooting (hehehehe) around on this box, but came to the conclusion that it absolutely had to be vulnerable to [MS16-032](https://www.rapid7.com/db/modules/exploit/windows/local/ms16_032_secondary_logon_handle_privesc), but couldn't for the life of me get it to work.  The device wasn't patched recently, and the exploit was famous for being fairly consistently, so in my head it had to work.  I tried the [powershell exploit](https://www.exploit-db.com/exploits/39719/) and the [metasploit one](https://www.rapid7.com/db/modules/exploit/windows/local/ms16_032_secondary_logon_handle_privesc), but nothing gave me a shell.  Hindsight is 20/20, and while I initially exploited it via the second, it's a good idea to see how both methods work.
 
 Exploiting the metasploit module requires a number of different options set.  Firstly, we need to ensure we have a 64 bit meterpreter.  We can just set this before we run the rejetto hfs exploit to give us a shell.
 
@@ -119,7 +119,7 @@ Exploit targets:
 
 From this, we see that the machine has two targets, one for x86 and one for x64.  Since, obviously, we're targeting an x64 based machine we need to select the correct target.
 
-``
+```bash
 msf exploit(ms16_032_secondary_logon_handle_privesc) > set target 1
 target => 1
 ```
