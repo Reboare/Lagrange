@@ -4,6 +4,10 @@ title:  "HackTheBox - Granny"
 date:   2017-07-26 00:00:00 +0100
 categories: [hackthebox]
 description: Solutions for HackTheBox Granny
+image:
+  feature: granny.jpg
+  credit:
+  creditlink:
 ---
 This writeup details attacking the machine Granny (10.10.10.15) on [HackTheBox](www.hackthebox.eu).
 
