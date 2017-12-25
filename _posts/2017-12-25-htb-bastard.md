@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "HackTheBox - Bastard"
-date:   2017-04-18 21:50:00 +0100
+date:   2017-12-25 21:50:00 +0100
 categories: hackthebox
 image:
   feature: bastard.jpg
