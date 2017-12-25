@@ -22,7 +22,7 @@ admin    ALL=NOPASSWD: ALL
 
 If someone gains access to the admin account then immediately they have full root access without a password.  Consider an ssh private key escaping into the wild or an outdated service running under this user, and suddenly an attacker who still hasn't cracked the admin accounts password has full root access, all because you installed lxd. 
 
-{%highlight bash%}
+```bash
 ubuntu@ubuntu:~$ cat /etc/passwd | grep 1000 
 ubuntu:x:1000:1000:ubuntu,,,:/home/ubuntu:/bin/bash 
 ubuntu@ubuntu:~$ cat /etc/group | grep ubuntu 
@@ -50,7 +50,7 @@ lpadmin:x:113:ubuntu
 ubuntu:x:1000: 
 sambashare:x:128:ubuntu 
 lxd:x:129:ubuntu 
-{%endhighlight%} 
+```
 
 I'm not arguing against the existence of the lxd group, merely that it increases your attack surface without notifying the user at all.  Discovering this was down to a user not realising the power this group gave their account, and whilst sudo privilege was removed, lxd access was not. 
 
