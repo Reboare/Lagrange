@@ -1,11 +1,11 @@
 title:  Booj
-tagline:  a set of thoughts on security
+tagline:  thoughts on security
 
 # Authors documented under _data
 
 # Change to true for Disqus comments
 disqus:
-  comments: false
+  comments: true
   disqus_shortname: 'https-lenpaul-github-io-lagrange'
 
 google-ID: 'UA-80213386-1'
