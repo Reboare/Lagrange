@@ -16,8 +16,10 @@ Bastard is very much a box about understanding your environment much in the same
 
 Enumeration
 ==========
+
 Nmap
 --------
+
 ```bash
 PORT      STATE SERVICE VERSION
 80/tcp    open  http    Microsoft IIS httpd 7.5
@@ -37,11 +39,11 @@ PORT      STATE SERVICE VERSION
 
 Instantly we know two things about this box.  It's running Drupal and the host is windows.  This does affect getting a shell slightly, as I'd been so used to returning a shell on Linux LAMP stack boxes that I was sending incorrect shells most of the time.  Despite the name however, this isn't as bad as it sounds.  You'll take a lot of lessons from this device that will go into exploiting harder boxes.
 
-So, looking around we quickly realise that this version of Drupal is 7.54.  This is fairly recent but not ridiculously so.  Checking exploit-db also only yields one applicable exploit.  [](https://www.exploit-db.com/exploits/41564/)
+So, looking around we quickly realise that this version of Drupal is 7.54.  This is fairly recent but not ridiculously so.  Checking exploit-db also only yields one applicable exploit.  [https://www.exploit-db.com/exploits/41564/](https://www.exploit-db.com/exploits/41564/)
 
 I won't go in depth on how this exploit works, but the cliff-notes are that it attacks a REST endpoint created by the services extension.  To exploit we just need to find out the name of the REST endpoint (security through obscurity).  Honestly, exploiting this is simply a case of reading the exploit and the attached write-up. 
 
-So to find the rest-endpoint just fire up your favourite web directory scanner and let 'er rip.  This one took a while, but in the end we found it, it's just /rest.  So change the endpoint to /rest and then the payload is uploaded to the server.  You can either replace it with your own in the exploit file, giving you an instant shell, or you can use the default one to get a shell.
+So to find the rest-endpoint just fire up your favourite web directory scanner and let 'er rip.  This one took a while, but in the end we found it, it's just `/rest`.  So change the endpoint to /rest and then the payload is uploaded to the server.  You can either replace it with your own in the exploit file, giving you an instant shell, or you can use the default one to get a shell.
 
 Exploitation
 -------------
