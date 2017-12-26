@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Stack Buffer Overflow's - Chapter 1"
+title:  "Stack Buffer Overflow's: Linux - Chapter 1"
 date:   2017-12-26 01:00:00 +0100
 categories: [bof]
 description: v0.1
@@ -9,6 +9,8 @@ image:
   credit:
   creditlink:
 ---
+
+NOTE: THIS IS STILL A WIP
 Introduction
 ------------
 Buffer overflow's are almost the bread and butter of the exploit world.  They're can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.
@@ -275,13 +277,36 @@ You there madam, may I have your input please? And don't worry about null bytes,
 Segmentation fault 
 ```
 
-So with this we've succesfully redirected execution into a function of our choice.
+So with this we've succesfully redirected execution into a function of our choice. 
+
+Custom code execution
+--------------------
+Now we've succesfully redirected execution, lets look at executing some code of our own, instead of calling another function.  This will be the technique most tutorials will begin with, jumping back into the buffer and executing some shellcode we place in there.  Here I'll show the theory of this and then move into another example.
+
+So we've found a vulnerable program allowing us to perform a buffer overflow, but the program itself is running on a remote system and we want to send back a reverse shell to give us code execution.  There's plenty of shellcode out there allowing us to that, but how do we actually execute it?
+
+* [https://www.exploit-db.com/exploits/40110/](https://www.exploit-db.com/exploits/40110/)
+* [https://www.exploit-db.com/exploits/42485/](https://www.exploit-db.com/exploits/42485/)
+* [https://www.exploit-db.com/exploits/42339/](https://www.exploit-db.com/exploits/42339/)
+
+I'm sure you've already guessed this part!  If not, in the last part we wrote into the buffer  data of the form `JUNK+EIP`, where EIP is the value we intended to overwrite `$eip` with.  However, why don't we just place some malicious code in place of that junk data, and then set `$eip` to jump back and execute it?
+
+One other advantage of this method is that we don't need to know the exact address to jump back to, making exploit development quite a bit easier.  This is because we can leverage the `NOP` instruction, `\x90`.  This literally does nothing, but if we write a sequence of NOP's before our shellcode, also known as a nopsled, we can set `$eip` to any address in that sequence.  
+
+Our exploit format then becomes `NOPSLED+SHELLCODE+EIP`.  Do note that there's nothing stopping you doing `JUNK+EIP+NOPSLED+SHELLCODE` either.  It just depends how much space you have in your stack frame, what protections are in place and how you're jumping to your shellcode but we'll get into that at a later date.  Just know for now that I'm only explaining one method, which is a hardcoded address.
+
+So let's see this in action!
+
+Example 3 - Jumping to Shellcode
+------------
+### Bad Characters
+### Identifying Bad Characters
+### Full Exploit
+
 
 Epilogue
 --------
-We've gone from overwriting basic stack variables to controlling complete execution of the function.  Obviously the function had to be included within the binary, but it shows the basics of a stack overflow.  
-
-Next I'll be showing you how to use this technique to execute your own custom code, and how to bypass the very basic memory protections.  Have fun exploiting, and if you have any questions, do drop me a message.  For now I've included all references and other literature that might be of interest.  
+We've gone from overwriting basic stack variables to controlling complete execution of the program.  Next I'll be showing you how to bypass the very basic memory protections.  Have fun exploiting, and if you have any questions, do drop me a message.  For now I've included all references and other literature that might be of interest.  
 
 Happy Hacking!
 
@@ -296,4 +321,8 @@ References
 Other Literature
 ---------------
 [64 Bit Linux Stack Smashing](https://blog.techorganic.com/2015/04/10/64-bit-linux-stack-smashing-tutorial-part-1/)  
-[Sploitfun Tutorials](https://sploitfun.wordpress.com/2015/06/26/linux-x86-exploit-development-tutorial-series/)  
+[Sploitfun Tutorials](https://sploitfun.wordpress.com/2015/06/26/linux-x86-exploit-development-tutorial-series/)
+[Jumping to shellcode](http://www.abatchy.com/2017/05/jumping-to-shellcode.html)  
+
+Changelog
+---------
