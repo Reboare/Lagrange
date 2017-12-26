@@ -287,13 +287,13 @@ Happy Hacking!
 
 References
 ----------
-[PEDA](https://github.com/longld/peda)
-[Ropemporium](https://ropemporium.com/challenge/ret2win.html)
-[SkullSecurity - Registers](https://wiki.skullsecurity.org/index.php?title=Registers)
-[EBP Register](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/)
-[Stack Smashing for Fun and Profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf)
+[PEDA](https://github.com/longld/peda)  
+[Ropemporium](https://ropemporium.com/challenge/ret2win.html)  
+[SkullSecurity - Registers](https://wiki.skullsecurity.org/index.php?title=Registers)  
+[EBP Register](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/)  
+[Stack Smashing for Fun and Profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf)  
 
 Other Literature
 ---------------
-[64 Bit Linux Stack Smashing](https://blog.techorganic.com/2015/04/10/64-bit-linux-stack-smashing-tutorial-part-1/)
-[Sploitfun Tutorials](https://sploitfun.wordpress.com/2015/06/26/linux-x86-exploit-development-tutorial-series/)
+[64 Bit Linux Stack Smashing](https://blog.techorganic.com/2015/04/10/64-bit-linux-stack-smashing-tutorial-part-1/)  
+[Sploitfun Tutorials](https://sploitfun.wordpress.com/2015/06/26/linux-x86-exploit-development-tutorial-series/)  
