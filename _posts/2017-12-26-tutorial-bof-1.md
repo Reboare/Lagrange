@@ -115,7 +115,7 @@ Here our `check` variable is placed onto the stack at `esp+60`.  I will just con
    0x080484ba <+38>:	mov    DWORD PTR [esp],eax
    0x080484bd <+41>:	call   0x8048390 <fgets@plt>
 ```
-Here, the variables are popped onto the stack that will from the arguments being sent to the fgets function.  In 32-bit systems a function call takes it's arguments off the top of the stack so, in this case I'll try and convert the assembly into raw english step-by-step.
+Here, three variables are placed onto the stack.  These will be the arguments being sent to the fgets function.  In 32-bit system's a function call takes it's arguments off the top of the stack. In this case I'll try and convert what's happening in the assembly into english step-by-step.
 
 ```gdb
 mov    eax,ds:0x804a020 ; Place the value 0x804a020 into the eax register
@@ -240,7 +240,7 @@ We'll create a buffer of length 200, and see the value that `$eip` segfaults on.
 ```gdb
 ```
 
-Since the program segfaults at 0x41414641, so we just use `pattern offset 0x41414641` in PEDA.
+Since the program segfaults at 0x41414641, we use `pattern offset 0x41414641` in PEDA.
 
 So we know from the description that we want to return into the ret2win function.  We'll have a quick look at the disassembly of this function to see what it's doing.  I'm using radare2 for this:
 
@@ -279,7 +279,9 @@ So with this we've succesfully redirected execution into a function of our choic
 
 Epilogue
 --------
-We've gone from overwriting basic stack variables to controlling complete execution of the function.  Obviously the function had to be included within the binary, but it shows the basics of a stack overflow.  Next I'll be showing you how to use this technique to execute your own custom code, and how to bypass the very basic memory protections.  Have fun exploiting, and if you have any questions, do drop me a message.  For now I've included all references and other literature that might be of interest.  
+We've gone from overwriting basic stack variables to controlling complete execution of the function.  Obviously the function had to be included within the binary, but it shows the basics of a stack overflow.  
+
+Next I'll be showing you how to use this technique to execute your own custom code, and how to bypass the very basic memory protections.  Have fun exploiting, and if you have any questions, do drop me a message.  For now I've included all references and other literature that might be of interest.  
 
 Happy Hacking!
 
