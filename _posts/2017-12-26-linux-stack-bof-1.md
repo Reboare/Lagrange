@@ -11,13 +11,14 @@ image:
 ---
 
 NOTE: THIS IS STILL A WIP
+
 Introduction
 ------------
-Buffer overflow's are almost the bread and butter of the exploit world.  They're can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.
+Buffer overflow's are almost the bread and butter of the exploit world.  They can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.  
 
-The goal of this series, is to go over the most basic of buffer overflow's in an approachable manner, not shying too far from the lower level details.  Hopefully, I can help someone learn something from this.  If you have suggestions for me to improve my approach, don't hesitate to drop me a message or leave a comment, and equally if you have any questions.
+The goal of this series is to go over the most basic of buffer overflow's affecting the linux platform in an approachable manner, not shying too far from the lower level details.  Hopefully, I can help someone learn something from this.  If you have suggestions for me to improve my approach, don't hesitate to drop me a message or leave a comment, and equally if you have any questions.
 
-The definitive resource for basic buffer overflow is [http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf](Smashing the stack for fun and profit) by Aleph One, so give that a read before proceeding.
+The definitive article on buffer overflow's is [http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf](Smashing the stack for fun and profit) by Aleph One, and it's always worth referring to multiple resources.
 
 Example 1 - Stack buffer overflow basic 1
 -----------------------------------------
