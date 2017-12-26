@@ -3,18 +3,23 @@ layout: post
 title:  "Basic Buffer Overflow's - Chapter 1"
 date:   2017-12-26 01:00:00 +0100
 categories: [bof]
-description: 
+description: v0.1
 image:
   feature: shellcode.jpg
   credit:
   creditlink:
 ---
+Introduction
+------------
+Buffer overflow's are almost the bread and butter of the exploit world.  They're can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.
 
-Still a WIP
+The goal of this series, is to go over the most basic of buffer overflow's in an approachable manner, not shying too far from the lower level details.  Hopefully, I can help someone learn something from this.  If you have suggestions for me to improve my approach, don't hesitate to drop me a message or leave a comment, and equally if you have any questions.
+
+The definitive resource for basic buffer overflow is [http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf](Smashing the stack for fun and profit) by Aleph One, so give that a read before proceeding.
 
 Example 1 - Stack buffer overflow basic 1
-=======================================
-I'll be using the example from [root-me](https://www.root-me.org/en/Challenges/App-System/ELF-x86-Stack-buffer-overflow-basic-1) to illustrate basic stack corruption.  Since this is a fairly trivial example and introductory, I hope they won't feel any issue with me posting a solution publicly.
+-----------------------------------------
+So lets jump right in and smash the stack.  I'll be using the example from [root-me](https://www.root-me.org/en/Challenges/App-System/ELF-x86-Stack-buffer-overflow-basic-1) to illustrate basic stack corruption.  Since this is a fairly trivial example and introductory, I hope they won't feel any issue with me posting a solution publicly.
 ```c
 #include <stdlib.h>
 #include <stdio.h>
@@ -131,7 +136,7 @@ So in effect we've placed at memory locations, esp, esp+0x4 and esp+0x8, three d
  -------------------
 ```
 
-Right after these operations take place, the `fgets` function is called.  These three values we've just placed on the stack as above are the arguments to the function `fgets` as in the C code.
+Right after these operations take place, the `fgets` function is called.  These three values we've just placed on the stack as above are the arguments to the function `fgets` as in the C code.  This is in line with 32 bit calling conventions, arguments are placed upon the stack.  If you try some 64-bit exploitation examples, they'll actually be popped into registers (up to a point), so remember that if you find yourself unwittingly in 64-bit land.
 ```c
 fgets(buf,45,stdin);
 ```
@@ -188,3 +193,104 @@ Shell closed! Bye.
 ```
 
 So to summarise, via an overflow, and an understanding of the stack, we've effectively corrupted and overwritten a stack variable via an overflow.
+
+The stack
+-----------------------
+So what exactly is the stack?  Well, it's really just a section of memory that we define as being used to store several important variables and locals with fixed size.  If we're allocating dynamic memory (i.e. memory without knowing it's size at compile time) we'd be using the heap, but for now lets stay focussed.
+
+We define where the top of the stack is located in memory at any specific time with the `$esp` register.  It defines the location of the top of the stack, and is manipulated with individual `push` and `pop` instructions, which as their names might indicate, either add or remove from the stack.  If we push to the stack, the value of `$esp` is decremented, and vice versa for popping from it.  
+
+On the other end we have the frame pointer, `$ebp`, which defines where the function parameters and local variables reside.  It was included so that these variables had a fixed offset they could be referred to from.  As `$esp` moves, it cannot be used in such a way, whereas `$ebp` in a given stack frame is generally stationary.  [This resource](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/) provides a good overview of the `$ebp` register.
+
+The third register we will refer to is `$eip`.  In simple terms it just stores the location of the next instruction that is to be executed.  If you want a more solid foundation of each of these registers, then [skullsecurity's article](https://wiki.skullsecurity.org/index.php?title=Registers) is quite a good one.
+
+At `$ebp+4` the return address of the stack frame is stored.  What is this and why is it important?
+
+When a stack frame is left, such as in a function exit, generally the `leave` instruction is called.  This clears up the stack frame by moving the stack pointer to the frame pointer, in effect popping the stack up the frame pointer.  
+
+```asm
+mov esp, ebp
+pop ebp
+```
+
+The saved address of the last frame pointer is then popped off the stack.  This because the frame pointer also stores details on the area of memory that called it, including the last frame pointer at `$ebp` and the next instruction to be executed at `$ebp+4`.  This is important as the next instruction to be called is a `ret`, which will pop the return address off the stack and jmp to that value.  This isn't how it actually works but this will illustrate it hopefully.
+
+```asm
+pop ebx
+jmp ebx
+```
+
+Hopefully, now we can see how we can hijack command of a program's execution rather than just overwriting variables, with this technique.  If we can overwrite enough past our buffer, we can overwrite the saved return address.  Once a `ret` is called, the address we've overwritten will be jumped to.  So how do we use this?
+
+Example 2 - ret2win
+---------
+We'll be using the first binary challenge on [ropemporium](https://ropemporium.com/challenge/ret2win.html), called ret2win for this.  For this we're going to be hijacking execution of the program.
+
+When an unreachable address is jumped to for execution, the program will exit in a segmentation fault.  If we want to execute an arbitrary command, all we have to do is force a segmentation fault to prove that we've overwritten the saved return address.  So lets load up the binary and do that.
+
+Note: Still a WIP
+
+```bash
+```
+
+Boom!  We got a segmentation fault, but it doesn't give us much of a clue how many bytes we'll need to overwrite.  We can either modify the amount we overwrite byte by byte, or use a cyclic sequence to read off the location of EIP.  Metasploit has it's `pattern_create.rb` and [PEDA](https://github.com/longld/peda) has it's own `pattern create`.
+
+We'll create a buffer of length 200, and see the value that `$eip` segfaults on.
+
+```gdb
+```
+
+Since the program segfaults at 0x41414641, so we just use `pattern offset 0x41414641` in PEDA.
+
+So we know from the description that we want to return into the ret2win function.  We'll have a quick look at the disassembly of this function to see what it's doing.  I'm using radare2 for this:
+
+```gdb
+;-- ret2win:
+0x08048659      55             push ebp
+0x0804865a      89e5           mov ebp, esp
+0x0804865c      83ec08         sub esp, 8
+0x0804865f      83ec0c         sub esp, 0xc
+0x08048662      6824880408     push str.Thank_you__Here_s_your_flag: ; 0x8048824 ; "Thank you! Here's your flag:"
+0x08048667      e894fdffff     call sym.imp.printf
+0x0804866c      83c410         add esp, 0x10
+0x0804866f      83ec0c         sub esp, 0xc
+0x08048672      6841880408     push str.bin_cat_flag.txt   ; 0x8048841 ; "/bin/cat flag.txt"
+0x08048677      e8b4fdffff     call sym.imp.system
+0x0804867c      83c410         add esp, 0x10
+0x0804867f      90             nop
+0x08048680      c9             leave
+0x08048681      c3             ret
+```
+
+It prints out the value of the flag we want.  Obviously, this is a controlled example but it does show how we can redirect into an alternative function.
+
+By looking at the disassembly, we already know what location we want to return to (It's the location in memory we've disassembled, so 0x08048659), so now we just need to construct our payload, and send it into the program.  In this case we just overwrite EIP with the location of that function.
+
+```bash
+root@kali:~/Desktop# python -c 'print "A"*44 + "\x59\x86\x04\x08"'|./ret2win32
+For my first trick, I will attempt to fit 50 bytes of user input into 32 bytes of stack buffer; 
+What could possibly go wrong? 
+You there madam, may I have your input please? And don't worry about null bytes, we're using fgets! 
+> Thank you! Here's your flag:ROPE{a_placeholder_32byte_flag!} 
+Segmentation fault 
+```
+
+So with this we've succesfully redirected execution into a function of our choice.
+
+Epilogue
+--------
+We've gone from overwriting basic stack variables to controlling complete execution of the function.  Obviously the function had to be included within the binary, but it shows the basics of a stack overflow.  Next I'll be showing you how to use this technique to execute your own custom code, and how to bypass the very basic memory protections.  Have fun exploiting, and if you have any questions, do drop me a message.  For now I've included all references and other literature that might be of interest.  
+
+Happy Hacking!
+
+References
+----------
+[PEDA](https://github.com/longld/peda)
+[Ropemporium](https://ropemporium.com/challenge/ret2win.html)
+[SkullSecurity - Registers](https://wiki.skullsecurity.org/index.php?title=Registers)
+[EBP Register](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/)
+[Stack Smashing for Fun and Profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf)
+Other Literature
+---------------
+[64 Bit Linux Stack Smashing](https://blog.techorganic.com/2015/04/10/64-bit-linux-stack-smashing-tutorial-part-1/)
+[Sploitfun Tutorials](https://sploitfun.wordpress.com/2015/06/26/linux-x86-exploit-development-tutorial-series/)
