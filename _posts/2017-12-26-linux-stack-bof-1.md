@@ -205,7 +205,9 @@ So to summarise, via an overflow, and an understanding of the stack, we've effec
 
 The stack
 ----------
-So I've mentioned the stack a lot, but how do we know where it's located and how does it relate to `$esp` which we kept referring to?
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Call_stack_layout.svg/684px-Call_stack_layout.svg.png)
+
+So I've mentioned the stack a lot, but how do we know where it's located and how does it relate to `$esp` which we kept referring to?  The diagram above illustrates generally how it looks in memory.  Of course some details are missing but it does show the basics.
 
 We define where the top of the stack is located in memory at any specific time with the `$esp` register.  It defines the location of the top of the stack, and is manipulated with individual `push` and `pop` instructions, which as their names might indicate, either add or remove from the stack.  If we push to the stack, the value of `$esp` is decremented, and vice versa for popping from it.  
 
@@ -228,6 +230,7 @@ The saved address of the last frame pointer is then popped off the stack.  This 
 pop ebx
 jmp ebx
 ```
+If you're interested in a more detailed exploration of how the stack works, Gustavo Duarte's [Journey to the Stack](http://duartes.org/gustavo/blog/post/journey-to-the-stack/] is a great read.
 
 Hopefully, now we can see how we can hijack command of a program's execution rather than just overwriting variables, with this technique.  If we can overwrite enough past our buffer, we can overwrite the saved return address.  Once a `ret` is called, the address we've overwritten will be jumped to.  So how do we use this?
 
@@ -324,11 +327,12 @@ References
 [SkullSecurity - Registers](https://wiki.skullsecurity.org/index.php?title=Registers)  
 [EBP Register](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/)  
 [Stack Smashing for Fun and Profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf)  
+[Journey to the Stack](http://duartes.org/gustavo/blog/post/journey-to-the-stack/)
 
 Other Literature
 ---------------
 [64 Bit Linux Stack Smashing](https://blog.techorganic.com/2015/04/10/64-bit-linux-stack-smashing-tutorial-part-1/)  
-[Sploitfun Tutorials](https://sploitfun.wordpress.com/2015/06/26/linux-x86-exploit-development-tutorial-series/)
+[Sploitfun Tutorials](https://sploitfun.wordpress.com/2015/06/26/linux-x86-exploit-development-tutorial-series/)  
 [Jumping to shellcode](http://www.abatchy.com/2017/05/jumping-to-shellcode.html)  
 
 Changelog
