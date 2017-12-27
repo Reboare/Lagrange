@@ -14,15 +14,19 @@ NOTE: THIS IS STILL A WIP
 
 Introduction
 ------------
-Buffer overflow's are almost the bread and butter of the exploit world.  They can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.  
+Buffer overflow's are probably my favourite part of the security field. They can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Also they sound way more difficult than they are, so I've been enjoying riding on that cred round the office for the last couple months. 
+
+Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.  To be honest, you'll probably never use any of the techniques described here to get your own zero-day.  If only I hadn't been in nappies around 1995, when this stuff was 'cutting edge'.
 
 The goal of this series is to go over the most basic of buffer overflow's affecting the linux platform in an approachable manner, not shying too far from the lower level details.  Hopefully, I can help someone learn something from this.  If you have suggestions for me to improve my approach, don't hesitate to drop me a message or leave a comment, and equally if you have any questions.
 
-The definitive article on buffer overflow's is [http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf](Smashing the stack for fun and profit) by Aleph One, and it's always worth referring to multiple resources.
+The definitive article on buffer overflow's is [http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf](Smashing the stack for fun and profit) by Aleph One, and it wouldn't be right not to mention it in my opinion.  I'll also include at the end some of the resources I've used to shore up my understanding. 
+
+So lets jump right in and smash the stack! 
 
 Example 1 - Stack buffer overflow basic 1
 -----------------------------------------
-So lets jump right in and smash the stack.  I'll be using the example from [root-me](https://www.root-me.org/en/Challenges/App-System/ELF-x86-Stack-buffer-overflow-basic-1) to illustrate basic stack corruption.  Since this is a fairly trivial example and introductory, I hope they won't feel any issue with me posting a solution publicly.
+I'll be using the example from [root-me](https://www.root-me.org/en/Challenges/App-System/ELF-x86-Stack-buffer-overflow-basic-1) to illustrate basic stack corruption.  Since this is a fairly trivial example and introductory, I hope they won't feel any issue with me posting a solution publicly.  As a point of note, you're going to need to be able to read C for most of this article, or at least follow the general logic of what's happening.
 ```c
 #include <stdlib.h>
 #include <stdio.h>
@@ -56,9 +60,11 @@ int main()
    return 0;
 }
 ```
-The actual exploitation of this is fairly trivial.  The fgets function allows us to write 45 bytes of memory into a buffer of size 40.  We won't get any fancy EIP overwrites, but it does allow us to corrupt memory and potentially some of the variables.
+The actual exploitation of this is fairly trivial.  The fgets function allows us to write 45 bytes of memory into a buffer of size 40.  We won't be doing anything too fancy, but it does allow us to corrupt memory and potentially some of the variables.  Firstly I'd like to take a quick moment to define some terms, namely the stack.
 
-Firstly, lets open this in gdb and run a disassembly of the main function.  There are better tools for doing this such as [radare2](https://github.com/radare/radare2), but we'll keep it simple for now.
+So what exactly is the stack?  Well, it's really just a section of memory that we define as being used to store several important variables and locals with fixed size.  Whenever I refer to the stack, just note that it's a defined block of memory where my variables defined above, like `check` and `buf` are stored.  This makes it simple for the compiler to manage variables and code, as well as allow us to do some fancy tricks if programmers get lazy.  The stack can grow and shrink as execution takes place, but this example will keep it simple. 
+
+Let's open this in gdb and run a disassembly of the main function.  There are better tools for doing this such as [radare2](https://github.com/radare/radare2), but we'll keep it simple for now.
 ```gdb
 gdb$ disas main
 Dump of assembler code for function main:
@@ -103,7 +109,7 @@ Dump of assembler code for function main:
 End of assembler dump.
 ```
 
-So lets break this down and look at the parts where the buffer, and variables are placed onto the stack
+Wow that's a lot of letters and numbers. So lets break this down and look at the parts where the buffer, and variables are placed onto the stack.
 ```
    0x0804849d <+9>:	mov    DWORD PTR [esp+0x3c],0x4030201
 ```
@@ -172,7 +178,7 @@ So, we overwrote the check variable with our buffer, as 0x41 is the hex code for
 ```python
 import struct;  print "A"*40 + struct.pack("<L", 0xdeadbeef)
 ```
-We run this and pipe it into our binary, and while we get a shell it isn't returned to us as interactive. (There was ways around this). 
+We run this and pipe it into our binary, and while we get a shell it isn't returned to us as interactive. (There was ways around this, I think). 
 ```bash
 app-systeme-ch13@challenge02:~$ python -c 'import struct;  print "A"*40 + struct.pack("<L", 0xdeadbeef);' | ./ch13
 
@@ -198,8 +204,8 @@ Shell closed! Bye.
 So to summarise, via an overflow, and an understanding of the stack, we've effectively corrupted and overwritten a stack variable via an overflow.
 
 The stack
------------------------
-So what exactly is the stack?  Well, it's really just a section of memory that we define as being used to store several important variables and locals with fixed size.  If we're allocating dynamic memory (i.e. memory without knowing it's size at compile time) we'd be using the heap, but for now lets stay focussed.
+----------
+So I've mentioned the stack a lot, but how do we know where it's located and how does it relate to `$esp` which we kept referring to?
 
 We define where the top of the stack is located in memory at any specific time with the `$esp` register.  It defines the location of the top of the stack, and is manipulated with individual `push` and `pop` instructions, which as their names might indicate, either add or remove from the stack.  If we push to the stack, the value of `$esp` is decremented, and vice versa for popping from it.  
 
@@ -209,7 +215,7 @@ The third register we will refer to is `$eip`.  In simple terms it just stores t
 
 At `$ebp+4` the return address of the stack frame is stored.  What is this and why is it important?
 
-When a stack frame is left, such as in a function exit, generally the `leave` instruction is called.  This clears up the stack frame by moving the stack pointer to the frame pointer, in effect popping the stack up the frame pointer.  
+When a stack frame is left, such as in a function exit, generally the `leave` instruction is called.  This clears up the stack frame by moving the stack pointer to the frame pointer, in effect popping the stack up to the frame pointer.  No data is actually deleted but from the point-of-view of the stack, it no longer exists unless we go manually adjusting `$esp`.
 
 ```asm
 mov esp, ebp
@@ -278,7 +284,7 @@ You there madam, may I have your input please? And don't worry about null bytes,
 Segmentation fault 
 ```
 
-So with this we've succesfully redirected execution into a function of our choice. 
+So with this we've succesfully redirected execution into a function of our choice. We did get a segmentation fault at the end, but this is avoidable if required.  For now, we don't need to worry about that.
 
 Custom code execution
 --------------------
