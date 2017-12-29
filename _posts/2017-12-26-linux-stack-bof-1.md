@@ -225,8 +225,7 @@ The third register we will refer to is `$eip`.  In simple terms it just stores t
 
 At `$ebp+4` the return address of the stack frame is stored.  What is this and why is it important?
 
-The Return Address
-------------------
+### The Return Address  
 When a stack frame is left, such as in a function exit, generally the `leave` instruction is called.  This clears up the stack frame by moving the stack pointer to the frame pointer, in effect popping the stack up to the frame pointer.  No data is actually deleted but from the point-of-view of the stack, it no longer exists unless we go manually adjusting `$esp`.
 
 ```asm
