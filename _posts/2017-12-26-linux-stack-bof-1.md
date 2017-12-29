@@ -22,8 +22,7 @@ The definitive article on buffer overflow's is [Smashing the stack for fun and p
 
 So lets jump right in and smash the stack! 
 
-Environment
------------
+### Environment  
 * [Kali 2017.2](https://www.kali.org/news/kali-linux-2017-2-release/)
 * [GDB Peda](https://github.com/longld/peda)
 
