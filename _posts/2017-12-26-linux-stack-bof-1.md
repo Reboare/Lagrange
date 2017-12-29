@@ -213,6 +213,10 @@ So I've mentioned the stack a lot, but how do we know where it's located and how
 
 We define where the top of the stack is located in memory at any specific time with the `$esp` register.  It defines the location of the top of the stack, and is manipulated with individual `push` and `pop` instructions, which as their names might indicate, either add or remove from the stack.  If we push to the stack, the value of `$esp` is decremented, and vice versa for popping from it.  
 
+<p align="center">
+<img src='/assets/img/stack-bof-1/stack-2.png'>
+ </p>
+
 On the other end we have the frame pointer, `$ebp`, which defines where the function parameters and local variables reside.  It was included so that these variables had a fixed offset they could be referred to from.  As `$esp` moves, it cannot be used in such a way, whereas `$ebp` in a given stack frame is generally stationary.  [This resource](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/) provides a good overview of the `$ebp` register.
 
 The third register we will refer to is `$eip`.  In simple terms it just stores the location of the next instruction that is to be executed.  If you want a more solid foundation of each of these registers, then [skullsecurity's article](https://wiki.skullsecurity.org/index.php?title=Registers) is quite a good one.
@@ -225,6 +229,10 @@ When a stack frame is left, such as in a function exit, generally the `leave` in
 mov esp, ebp
 pop ebp
 ```
+
+<p align="center">
+<img src='/assets/img/stack-bof-1/stack-3.png'>
+ </p>
 
 The saved address of the last frame pointer is then popped off the stack.  This because the frame pointer also stores details on the area of memory that called it, including the last frame pointer at `$ebp` and the next instruction to be executed at `$ebp+4`.  This is important as the next instruction to be called is a `ret`, which will pop the return address off the stack and jmp to that value.  This isn't how it actually works but this will illustrate it hopefully.
 
