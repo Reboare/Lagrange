@@ -205,7 +205,7 @@ So to summarise, via an overflow, and an understanding of the stack, we've effec
 
 The stack
 ----------
-![](https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Call_stack_layout.svg/684px-Call_stack_layout.svg.png)
+![](/assets/img/stack-bof-1/stack-1.png)
 
 So I've mentioned the stack a lot, but how do we know where it's located and how does it relate to `$esp` which we kept referring to?  The diagram above illustrates generally how it looks in memory.  Of course some details are missing but it does show the basics.
 
