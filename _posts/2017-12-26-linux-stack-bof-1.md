@@ -14,7 +14,7 @@ Introduction
 ------------
 Buffer overflow's are probably my favourite part of the security field. They can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Also they sound way more difficult than they are, so I've been enjoying riding on that cred round the office for the last couple months. 
 
-Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.  To be honest, you'll probably never use any of the techniques described here to get your own zero-day.  With techniques to prevent memory exploitation such as [Data Execution Prevention](https://en.wikipedia.org/wiki/Executable_space_protection) and [Address Space Layout Randomization](https://en.wikipedia.org/wiki/Address_space_layout_randomization), these techniques, while fundamental to learn, will not work in most modern systems.  If only I hadn't been in nappies when this stuff was 'cutting edge'.
+Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.  To be honest, you'll probably never use any of the techniques described here to get your own zero-day.  With techniques to prevent memory exploitation such as [Data Execution Prevention](https://en.wikipedia.org/wiki/Executable_space_protection) and [Address Space Layout Randomization](https://en.wikipedia.org/wiki/Address_space_layout_randomization), what's described in this post, while fundamental to learn, will not work in most modern systems.  If only I hadn't been in nappies when this stuff was 'cutting edge'.
 
 The goal of this series is to go over the most basic of buffer overflow's affecting the linux platform in an approachable manner, not shying too far from the lower level details.  Hopefully, I can help someone learn something from this.  If you have suggestions for me to improve my approach, don't hesitate to drop me a message or leave a comment, and equally if you have any questions.
 
@@ -211,22 +211,22 @@ The stack
 <img src='/assets/img/stack-bof-1/stack-1.png'>
  </p>
 
-So I've mentioned the stack a lot, but how do we know where it's located and how does it relate to `$esp` which we kept referring to?  The diagram above illustrates generally how it looks in memory.  Of course a lot of details are missing but it does show the basics.
+So I've mentioned the stack a lot, but how do we know where it's located and how does it relate to `esp` which we kept referring to?  The diagram above illustrates generally how it looks in memory.  Of course a lot of details are missing but it does show the basics.
 
-We define where the top of the stack is located in memory at any specific time with the `$esp` register.  It defines the location of the top of the stack, and is manipulated with individual `push` and `pop` instructions, which as their names might indicate, either add or remove from the stack.  The stack itself will grow downwards in memory for x86 architectures.  Therefore, if we push to the stack a value, that value is written to the location at `$esp` and the value of `$esp` is decremented, and incremented for popping from it.  The diagram below illustrates what happens to ESP as we push and pop.
+We define where the top of the stack is located in memory at any specific time with the `esp` register.  It defines the location of the top of the stack, and is manipulated with individual `push` and `pop` instructions, which as their names might indicate, either add or remove from the stack.  The stack itself will grow downwards in memory for x86 architectures.  Therefore, if we push to the stack a value, that value is written to the location at `esp` and the value of `esp` is decremented, and incremented for popping from it.  The diagram below illustrates what happens to ESP as we push and pop.
 
 <p align="center">
 <img src='/assets/img/stack-bof-1/stack-2.png'>
  </p>
 
-On the other end we have the frame pointer, `$ebp`, which defines where the function parameters and local variables reside.  It was included so that these variables had a fixed offset they could be referred to from.  As `$esp` moves, it cannot be used in such a way, whereas `$ebp` in a given stack frame is generally stationary.  [This resource](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/) provides a good overview of the `$ebp` register.
+On the other end we have the frame pointer, `ebp`, which defines where the function parameters and local variables reside.  It was included so that these variables had a fixed offset they could be referred to from.  As `esp` moves, it cannot be used in such a way, whereas `ebp` in a given stack frame is generally stationary.  [This resource](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/) provides a good overview of the `ebp` register.
 
-The third register we will refer to is `$eip`.  In simple terms it just stores the location of the next instruction that is to be executed.  If you want a more solid foundation of each of these registers, then [skullsecurity's article](https://wiki.skullsecurity.org/index.php?title=Registers) is quite a good one.
+The third register we will refer to is `eip`.  In simple terms it just stores the location of the next instruction that is to be executed.  If you want a more solid foundation of each of these registers, then [skullsecurity's article](https://wiki.skullsecurity.org/index.php?title=Registers) is quite a good one.
 
-At `$ebp+4` the return address of the stack frame is stored.  What is this and why is it important?
+At `ebp+4` the return address of the stack frame is stored.  What is this and why is it important?
 
 ### The Return Address  
-When a stack frame is left, such as in a function exit, generally the `leave` instruction is called.  This clears up the stack frame by moving the stack pointer to the frame pointer, in effect popping the stack up to the frame pointer.  No data is actually deleted but from the point-of-view of the stack, it no longer exists unless we go manually adjusting `$esp`.
+When a stack frame is left, such as in a function exit, generally the `leave` instruction is called.  This clears up the stack frame by moving the stack pointer to the frame pointer, in effect popping the stack up to the frame pointer.  No data is actually deleted but from the point-of-view of the stack, it no longer exists unless we go manually adjusting `esp`.
 
 ```asm
 mov esp, ebp
@@ -237,13 +237,13 @@ pop ebp
 <img src='/assets/img/stack-bof-1/stack-3.png'>
  </p>
 
-The saved address of the last frame pointer is then popped off the stack.  This because the frame pointer also stores details on the area of memory that called it, including the last frame pointer at `$ebp` and the next instruction to be executed at `$ebp+4`.  This is important as the next instruction to be called is a `ret`, which will pop the return address off the stack and jmp to that value.  This isn't how it actually works but this will illustrate it hopefully.
+The saved address of the last frame pointer is then popped off the stack.  This because the frame pointer also stores details on the area of memory that called it, including the last frame pointer at `ebp` and the next instruction to be executed at `ebp+4`.  This is important as the next instruction to be called is a `ret`, which will pop the return address off the stack and jmp to that value.  This isn't how it actually works but this will illustrate it hopefully.
 
 ```asm
 pop ebx
 jmp ebx
 ```
-If you're interested in a more detailed exploration of how the stack works, Gustavo Duarte's [Journey to the Stack](http://duartes.org/gustavo/blog/post/journey-to-the-stack/] is a great read.
+If you're interested in a more detailed exploration of how the stack works, Gustavo Duarte's [Journey to the Stack](http://duartes.org/gustavo/blog/post/journey-to-the-stack/) is a great read.
 
 Hopefully, now we can see how we can hijack command of a program's execution rather than just overwriting variables, with this technique.  If we can overwrite enough past our buffer, we can overwrite the saved return address.  Once a `ret` is called, the address we've overwritten will be jumped to.  So how do we use this?
 
@@ -267,7 +267,7 @@ You there madam, may I have your input please? And don't worry about null bytes,
 
 Boom!  We got a segmentation fault, but it doesn't give us much of a clue how many bytes we'll need to overwrite.  We can either modify the amount we overwrite byte by byte, or use a cyclic sequence to read off the location of EIP.  Metasploit has it's `pattern_create.rb` and [PEDA](https://github.com/longld/peda) has it's own `pattern create`.
 
-We'll create a buffer of length 200, and see the value that `$eip` segfaults on.
+We'll create a buffer of length 200, and see the value that `eip` segfaults on.
 
 ```gdb
 gdb-peda$ pattern create 200
@@ -353,9 +353,9 @@ So we've found a vulnerable program allowing us to perform a buffer overflow, bu
 * [https://www.exploit-db.com/exploits/42485/](https://www.exploit-db.com/exploits/42485/)
 * [https://www.exploit-db.com/exploits/42339/](https://www.exploit-db.com/exploits/42339/)
 
-I'm sure you've already guessed this part!  If not, in the last part we wrote into the buffer  data of the form `JUNK+EIP`, where EIP is the value we intended to overwrite `$eip` with.  However, why don't we just place some malicious code in place of that junk data, and then set `$eip` to jump back and execute it?
+I'm sure you've already guessed this part!  If not, in the last part we wrote into the buffer  data of the form `JUNK+EIP`, where EIP is the value we intended to overwrite `eip` with.  However, why don't we just place some malicious code in place of that junk data, and then set `eip` to jump back and execute it?
 
-One other advantage of this method is that we don't need to know the exact address to jump back to, making exploit development quite a bit easier.  This is because we can leverage the `NOP` instruction, `\x90`.  This literally does nothing, but if we write a sequence of NOP's before our shellcode, also known as a nopsled, we can set `$eip` to any address in that sequence.  
+One other advantage of this method is that we don't need to know the exact address to jump back to, making exploit development quite a bit easier.  This is because we can leverage the `NOP` instruction, `\x90`.  This literally does nothing, but if we write a sequence of NOP's before our shellcode, also known as a nopsled, we can set `eip` to any address in that sequence.  
 
 Our exploit format then becomes `NOPSLED+SHELLCODE+EIP`.  Do note that there's nothing stopping you doing `JUNK+EIP+NOPSLED+SHELLCODE` either.  It just depends how much space you have in your stack frame, what protections are in place and how you're jumping to your shellcode but we'll get into that at a later date.  Just know for now that I'm only explaining one method, which is a hardcoded address.
 
@@ -363,9 +363,39 @@ So let's see this in action!
 
 Example 3 - Jumping to Shellcode
 ------------
-### Bad Characters
-### Identifying Bad Characters
-### Full Exploit
+```
+/*
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+int main(int argc, char * argv[]){
+	char buf[128];
+
+	if(argc == 1){
+		printf("Usage: %s argument\n", argv[0]);
+		exit(1);
+	}
+	strcpy(buf,argv[1]);
+	printf("%s", buf);
+
+	return 0;
+}
+```
 
 
 Epilogue
@@ -380,7 +410,7 @@ References
 [Ropemporium](https://ropemporium.com/challenge/ret2win.html)  
 [SkullSecurity - Registers](https://wiki.skullsecurity.org/index.php?title=Registers)  
 [EBP Register](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/)  
-[Stack Smashing for Fun and Profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf)  
+[Smashing the Stack for Fun and Profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf)  
 [Journey to the Stack](http://duartes.org/gustavo/blog/post/journey-to-the-stack/)
 
 Other Literature
