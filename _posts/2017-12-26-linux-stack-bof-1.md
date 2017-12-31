@@ -456,6 +456,10 @@ References
 [EBP Register](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/)  
 [Smashing the Stack for Fun and Profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf)  
 [Journey to the Stack](http://duartes.org/gustavo/blog/post/journey-to-the-stack/)
+[RopEmporium - ret2win](https://ropemporium.com/challenge/ret2win.html)
+[ELF x86 - Stack buffer overflow basic 1](https://www.root-me.org/en/Challenges/App-System/ELF-x86-Stack-buffer-overflow-basic-1)
+[Difference between Real User ID, Effective User ID and Saved User ID](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id)
+http://shell-storm.org/shellcode/files/shellcode-827.php
 
 Other Literature
 ---------------
