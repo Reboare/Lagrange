@@ -455,17 +455,19 @@ References
 [SkullSecurity - Registers](https://wiki.skullsecurity.org/index.php?title=Registers)  
 [EBP Register](https://practicalmalwareanalysis.com/2012/04/03/all-about-ebp/)  
 [Smashing the Stack for Fun and Profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf)  
-[Journey to the Stack](http://duartes.org/gustavo/blog/post/journey-to-the-stack/)
-[RopEmporium - ret2win](https://ropemporium.com/challenge/ret2win.html)
-[ELF x86 - Stack buffer overflow basic 1](https://www.root-me.org/en/Challenges/App-System/ELF-x86-Stack-buffer-overflow-basic-1)
-[Difference between Real User ID, Effective User ID and Saved User ID](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id)
-http://shell-storm.org/shellcode/files/shellcode-827.php
+[Journey to the Stack](http://duartes.org/gustavo/blog/post/journey-to-the-stack/)  
+[RopEmporium - ret2win](https://ropemporium.com/challenge/ret2win.html)  
+[ELF x86 - Stack buffer overflow basic 1](https://www.root-me.org/en/Challenges/App-System/ELF-x86-Stack-buffer-overflow-basic-1)  
+[Difference between Real User ID, Effective User ID and Saved User ID](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id)  
+http://shell-storm.org/shellcode/files/shellcode-827.php  
 
 Other Literature
 ---------------
 [64 Bit Linux Stack Smashing](https://blog.techorganic.com/2015/04/10/64-bit-linux-stack-smashing-tutorial-part-1/)  
 [Sploitfun Tutorials](https://sploitfun.wordpress.com/2015/06/26/linux-x86-exploit-development-tutorial-series/)  
 [Jumping to shellcode](http://www.abatchy.com/2017/05/jumping-to-shellcode.html)  
+[Corelan - Windows Buffer Overflows](https://www.corelan.be/index.php/2009/07/19/exploit-writing-tutorial-part-1-stack-based-overflows/)
+
 
 Changelog
 ---------
