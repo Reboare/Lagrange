@@ -300,7 +300,7 @@ ESP: 0xffffd2c0 --> 0xf7fa0062 --> 0xe0a5210
 EIP: 0x41414641 ('AFAA')
 ```
 
-Here we see it has a value of 0x41414641.  What's happened in execution is we've overwritten the saved EIP, and then the program has attempted to return back to that location in memory.  Since there's nothing there, it's thrown a segmentation fault.  we use `pattern offset 0x41414641` in PEDA, which tells us at what position that value was in our string.
+Here we see it has a value of `0x41414641`.  What's happened in execution is we've overwritten the saved EIP, and then the program has attempted to return back to that location in memory.  Since there's nothing there, it's thrown a segmentation fault.  we use `pattern offset 0x41414641` in PEDA, which tells us at what position that value was in our string.
 
 ```
 gdb-peda$ pattern offset 0x41414641
