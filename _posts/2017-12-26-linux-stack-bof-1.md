@@ -12,7 +12,7 @@ image:
 
 Introduction
 ------------
-Buffer overflow's are probably my favourite part of the security field. They can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Also they sound way more difficult than they are, so I've been enjoying riding on that cred round the office for the last couple months. 
+Buffer overflow's are probably my favourite part of the security field. They can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Also they sound way more difficult than they are!
 
 Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.  To be honest, you'll probably never use any of the techniques described here to get your own zero-day.  With techniques to prevent memory exploitation such as [Data Execution Prevention](https://en.wikipedia.org/wiki/Executable_space_protection) and [Address Space Layout Randomization](https://en.wikipedia.org/wiki/Address_space_layout_randomization), what's described in this post, while fundamental to learn, will not work in most modern systems.  If only I hadn't been in nappies when this stuff was 'cutting edge'.
 
@@ -428,7 +428,7 @@ In our payload we then place the following shellcode: [http://shell-storm.org/sh
 python -c "from struct import pack; print '\x6a\x0b\x58\x99\x52\x66\x68\x2d\x70\x89\xe1\x52\x6a\x68\x68\x2f\x62\x61\x73\x68\x2f\x62\x69\x6e\x89\xe3\x52\x51\x53\x89\xe1\xcd\x80'.ljust(140,'\x90') +  pack('<L', 0xffffcfd0)"  > /tmp/var
 ```
 
-You'll notice here I've used ljust on the shellcode.  This just pads the string to the determined length of 140 and pads it with NOP instructions, so it makes the process of creating a nopsled slightly easier.  For example, if we were to replace the shellcode, no other adjustments would be necessary.  
+You'll notice here I've used `ljust` on the shellcode.  This just pads the string to the determined length of 140 and pads it with NOP instructions, so it makes the process of creating a nopsled slightly easier.  For example, if we were to replace the shellcode, no other adjustments would be necessary.  
 
 We run the binary, inputting the payload, and we are returned a root shell.  The uid won't change but the [effective-uid](https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id) or the euid does, meaning we now have root privileges.
 
