@@ -8,7 +8,7 @@ disqus:
   comments: true
   disqus_shortname: 'booj-1'
 
-google-ID: 'UA-80213386-1'
+google-ID: 'UA-111876212-1'
 
 menu:
 - {name: 'About', path: 'menu', url: 'about.html'}
