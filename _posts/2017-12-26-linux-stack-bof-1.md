@@ -214,7 +214,7 @@ The stack
 
 So I've mentioned the stack a lot, but how do we know where it's located and how does it relate to `esp` which we kept referring to?  The diagram above illustrates generally how it looks in memory.  Of course a lot of details are missing but it does show the basics.
 
-We define where the top of the stack is located in memory at any specific time with the `esp` register.  It defines the location of the top of the stack, and is manipulated with individual `push` and `pop` instructions, which as their names might indicate, either add or remove from the stack.  The stack itself will grow downwards in memory for x86 architectures.  Therefore, if we push to the stack a value, that value is written to the location at `esp` and the value of `esp` is decremented, and incremented for popping from it.  The diagram below illustrates what happens to ESP as we push and pop.
+We define where the top of the stack is located in memory at any specific time with the `esp` register.  It defines the location of the top of the stack, and is manipulated with individual `push` and `pop` instructions, which as their names might indicate, either add or remove from the stack.  The stack itself will grow downwards in memory for x86 architectures.  Therefore, if we push to the stack a value, that value is written to the location at `esp` and the value of `esp` is decremented, and incremented for popping from it.  The diagram below illustrates what happens to ESP as we push and pop. Just as a note, an instruction of the form `pop ebx` means that the value popped off the stack is moved into the `ebx` register.
 
 <p align="center">
 <img src='/assets/img/stack-bof-1/stack-2.png'>
@@ -238,7 +238,9 @@ pop ebp
 <img src='/assets/img/stack-bof-1/stack-3.png'>
  </p>
 
-The saved address of the last frame pointer is then popped off the stack.  This because the frame pointer also stores details on the area of memory that called it, including the last frame pointer at `ebp` and the next instruction to be executed at `ebp+4`.  This is important as the next instruction to be called is a `ret`, which will pop the return address off the stack and jmp to that value.  This isn't how it actually works but this will illustrate it hopefully.
+The saved address of the last frame pointer is then popped off the stack.  This because the frame pointer also stores details on the area of memory that called it, including the last frame pointer at `ebp` and the next instruction to be executed at `ebp+4`.  This is important as the next instruction to be called is a `ret`, which will pop the return address off the stack and moved into `eip`. Since `eip` refers to the next instruction to be executed, execution then jumps to that value. 
+
+Below isn't how it actually works but will illustrate it hopefully.
 
 ```asm
 pop ebx
