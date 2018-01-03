@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Stack Buffer Overflow's: Linux - Chapter 1"
+title:  "Stack Buffer Overflows: Linux - Chapter 1"
 date:   2017-12-26 01:00:00 +0100
 categories: [bof]
 description: v0.1
@@ -12,13 +12,13 @@ image:
 
 Introduction
 ------------
-Buffer overflow's are probably my favourite part of the security field. They can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Also they sound way more difficult than they are!
+Buffer overflows are probably my favourite part of the security field. They can range from simple to incomprehensible, offer a wide variety of exploitation techniques and are just kinda fun.  Also they sound way more difficult than they are!
 
 Whilst modern OS's have started to introduce memory protections, there are always ways around these, and it's still up to the application developers to protect their applications. Have a quick search on [exploit-db](https://www.exploit-db.com) for recent buffer overflow exploits, and you'll get a fair few turn up.  To be honest, you'll probably never use any of the techniques described here to get your own zero-day.  With techniques to prevent memory exploitation such as [Data Execution Prevention](https://en.wikipedia.org/wiki/Executable_space_protection) and [Address Space Layout Randomization](https://en.wikipedia.org/wiki/Address_space_layout_randomization), what's described in this post, while fundamental to learn, will not work in most modern systems.  If only I hadn't been in nappies when this stuff was 'cutting edge'.
 
-The goal of this series is to go over the most basic of buffer overflow's affecting the linux platform in an approachable manner, not shying too far from the lower level details.  Hopefully, I can help someone learn something from this.  If you have suggestions for me to improve my approach, don't hesitate to drop me a message or leave a comment, and equally if you have any questions.
+The goal of this series is to go over the most basic of buffer overflows affecting the linux platform in an approachable manner, not shying too far from the lower level details.  Hopefully, I can help someone learn something from this.  If you have suggestions for me to improve my approach, don't hesitate to drop me a message or leave a comment, and equally if you have any questions.
 
-The definitive article on buffer overflow's is [Smashing the stack for fun and profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf) by Aleph One, and it wouldn't be right not to mention it in my opinion.  I'll also include at the end some of the resources I've used to shore up my understanding. 
+The definitive article on buffer overflows is [Smashing the stack for fun and profit](http://www-inst.eecs.berkeley.edu/~cs161/fa08/papers/stack_smashing.pdf) by Aleph One, and it wouldn't be right not to mention it in my opinion.  I'll also include at the end some of the resources I've used to shore up my understanding. 
 
 So lets jump right in and smash the stack! 
 
