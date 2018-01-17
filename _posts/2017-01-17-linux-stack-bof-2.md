@@ -145,7 +145,7 @@ ls
 bof  bof.c  invoke  peda-session-bof.txt  peda-session-dash.txt
 ```
 
-Step 5:  Without Invoke
+Without Invoke
 --------------------------------
 
 Of course sometimes the script isn't available to us, or isn't appropriate to the environment.  Say you're exploiting a remote service, and therefore the binary is already loaded and memory locations set.
@@ -161,7 +161,7 @@ root@kali:~/bof# (cat /tmp/var; cat)| /root/bof/bof
 id
 uid=0(root) gid=0(root) groups=0(root)
 ```
-If this doesn't work, then play around with the stack location until the exploit succeeds.
+If this doesn't work, then all you need to do is play around with the stack location.  Fuzz that value on stack addresses above and below your current until the exploit succeeds.
 
 Epilogue
 -----------
