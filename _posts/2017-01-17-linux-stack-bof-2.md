@@ -150,10 +150,6 @@ Step 5:  Without Invoke
 
 Of course sometimes the script isn't available to us, or isn't appropriate to the environment.  Say you're exploiting a remote service, and therefore the binary is already loaded and memory locations set.
 
-Epilogue
---------
-Hopefully now you have a good idea how you'd build an exploit from scratch using GDB.  In the next chapter we'll use these techniques to build a working exploit from scratch for a known application.  We'll also go through finding and removing bad characters, which can result in your shellcode failing to run.
-
 In this case repeat exactly as above, removing the environment variables again but simply don't use the `invoke` script.  We'll get a different stack address:
 ```
 [stack] : 0xffffd280 ('A' <repeats 200 times>)
@@ -169,7 +165,8 @@ If this doesn't work, then play around with the stack location until the exploit
 
 Epilogue
 -----------
-Now we've successfully exploited a binary without it intentionally leaking information, but we're still disabling all stack protections.  Next time I'll show you how to bypass the simplest of these, data execution prevention (DEP) and use a technique known as ret2libc.
+
+Hopefully now you have a good idea how you'd build an exploit from scratch using GDB.  Now we've successfully exploited a binary without it intentionally leaking information, but we're still disabling all stack protections.  Next time I'll show you how to bypass the simplest of these, data execution prevention (DEP) and use a technique known as ret2libc.
 
 References
 ----------
