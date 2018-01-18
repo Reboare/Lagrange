@@ -30,7 +30,7 @@ int bof()
 
 ```  
 
-## Step 1: Equalise the environment
+### Step 1: Equalise the environment
 
 There can be a number of reasons for this, but by far the most common is that the stack offsets outside GDB are different within GDB.  This [stack overflow](https://stackoverflow.com/questions/17775186/buffer-overflow-works-in-gdb-but-not-without-it/17775966#17775966) answer does a good job explaining the exact reason, environment variables.  It also provides a handy script for equalising these inside and outside GDB.  
 
