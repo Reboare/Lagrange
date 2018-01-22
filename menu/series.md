@@ -11,6 +11,6 @@ title: Series
    </li>
 
   <h3>Stack Buffer Overflows Linux</h3>
-   [https://reboare.github.io/bof/linux-stack-bof-1.html](Chapter 1 - Variable and EIP Overwrite)
+   [https://reboare.github.io/bof/linux-stack-bof-1.html](Chapter 1 - Variable and EIP Overwrite)  
    [https://reboare.github.io/bof/linux-stack-bof-2.html](Chapter 2 - Using GDB)
 </ul>
