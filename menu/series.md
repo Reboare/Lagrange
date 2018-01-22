@@ -3,21 +3,14 @@ layout: page
 title: Series
 ---
 <ul class="posts">
-  {% for post in site.posts %}
+  <h3>HackTheBox</h3>
+  <li itemscope>
+      <a href="https://reboare.github.io/hackthebox/calamity.html">Calamity</a>
+   </li>
 
-    {% unless post.next %}
-      <h3>{{ post.date | date: '%Y' }}</h3>
-    {% else %}
-      {% capture year %}{{ post.date | date: '%Y' }}{% endcapture %}
-      {% capture nyear %}{{ post.next.date | date: '%Y' }}{% endcapture %}
-      {% if year != nyear %}
-        <h3>{{ post.date | date: '%Y' }}</h3>
-      {% endif %}
-    {% endunless %}
-
-    <li itemscope>
-      <a href="{{ site.github.url }}{{ post.url }}">{{ post.title }}</a>
-    </li>
-
-  {% endfor %}
+  <h3>Stack Buffer Overflows Linux</h3>
+  <li itemscope>
+      <a href="https://reboare.github.io/bof/linux-stack-bof-1.html">1. Variable and EIP Overwrite</a>
+      <a href="https://reboare.github.io/bof/linux-stack-bof-2.html">2. Using GDB</a>
+   </li>
 </ul>
