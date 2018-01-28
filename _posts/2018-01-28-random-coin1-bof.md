@@ -102,7 +102,7 @@ We now test set 1 which is found to be the counterfeit.
 
 All that remains is to create some code that will replicate this binary search.  Below I have created a very basic and possible incorrect binary search acting against the remote server's guessing game, doing 100 guesses.
 
-```
+```python
 from pwn import *
 
 def generate_guesses(ii, ifin):
@@ -138,7 +138,7 @@ r.interactive()
 bof
 -----
 For this we're given a piece of code, a binary and a remote port we can connect to.
-```
+```c
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -165,7 +165,7 @@ The sensible thing here would have been to download the binary and calculate the
 
 In this case I just tested a simple skeleton script and slowly adjusted the length of my buffer by 4 bytes each time.  At a length of 56 bytes I was returned a root shell:
 
-```
+```python
 from pwn import *
 
 p = remote('pwnable.kr',9000)
