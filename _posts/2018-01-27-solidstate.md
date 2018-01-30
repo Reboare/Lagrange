@@ -15,7 +15,7 @@ This post will describe exploitation of the Solidstate device on [HackTheBox](ht
 
 ![](https://image.ibb.co/nHoHJb/1.png)
 
-Solidstate's an interesting box, and also memorable as the day when the HTB platform shit itself from the load.  It's also a lesson in reading the damn exploit code.  I included spent a long time re-running the exploit expecting stuff to happen, but the true realisation that I was missing something came when I sat down and actually read what the exploit did.
+Solidstate's an interesting box, and also memorable as the day when the HTB platform shit itself from the load.  It's also a lesson in reading the damn exploit code.  I spent a long time re-running the exploit expecting stuff to happen, but the true realisation came when I sat down and actually read what the exploit did.
 
 Enumeration
 -----------------
