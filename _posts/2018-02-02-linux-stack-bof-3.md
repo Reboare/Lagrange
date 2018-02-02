@@ -1,7 +1,7 @@
 --- 
 layout: post 
 title:  "Stack Buffer Overflows: Linux 3 - Bypassing DEP with ROP" 
-date:   2018-01-13 01:00:00 +0100 
+date:   2018-02-02 01:00:00 +0100 
 categories: [bof] 
 description: v0.1 
 image: 
