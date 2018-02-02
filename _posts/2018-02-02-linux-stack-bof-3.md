@@ -272,8 +272,8 @@ uid=0(root) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),24(cdrom),27(sudo),30(di
 ```
 We're returned a root shell!
 
- ret2mprotect 
- --------------
+ret2mprotect 
+--------------
 I won't go over this too much, as I've already covered it fairly well in my [Calamity Writeup]().  The long and short of it is we can disable DEP entirely and run arbitrary shell-code in that manner.  We use the `mprotect` function in libc to make our stack executable, and then jump to it as before.  Read the write-up if you're curious about this method.
 
 Conclusion
