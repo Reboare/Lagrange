@@ -282,8 +282,8 @@ Conclusion
  
 References  & Further Reading
 -------------- 
-[0x00sec Exploit Mitigation Techniques - Data Execution Prevention](https://0x00sec.org/t/exploit-mitigation-techniques-data-execution-prevention-dep/4634) 
-[The Stack Frame](http://www.cs.uwm.edu/classes/cs315/Bacon/Lecture/HTML/ch10s07.html)
-[Exploiting Environment Variables](http://techblog.rosedu.org/exploiting-environment-variables.html)
-[HackTheBox - October](https://reboare.github.io/hackthebox/htb-october.html) 
-[HackTheBox - Calamity](https://reboare.github.io/hackthebox/calamity.html) 
+[0x00sec Exploit Mitigation Techniques - Data Execution Prevention](https://0x00sec.org/t/exploit-mitigation-techniques-data-execution-prevention-dep/4634)  
+[The Stack Frame](http://www.cs.uwm.edu/classes/cs315/Bacon/Lecture/HTML/ch10s07.html)  
+[Exploiting Environment Variables](http://techblog.rosedu.org/exploiting-environment-variables.html)  
+[HackTheBox - October](https://reboare.github.io/hackthebox/htb-october.html)  
+[HackTheBox - Calamity](https://reboare.github.io/hackthebox/calamity.html)  
