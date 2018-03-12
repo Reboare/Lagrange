@@ -14,6 +14,7 @@ menu:
 - {name: 'About', path: 'menu', url: 'about.html'}
 - {name: 'Writing', path: 'menu', url: 'writing.html'}
 - {name: 'Series', path: 'menu', url: 'series.html'}
+- {name: 'Wiki', path: 'menu', url: 'https://reboare.gitbooks.io/booj-security/content/'}
 - {name: 'Contact', path: 'menu', url: 'contact.html'}
 
 # Available social icons are powered by Font Awesome, so you can use any icon that they offer
