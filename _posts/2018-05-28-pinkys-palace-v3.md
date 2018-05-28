@@ -1,6 +1,14 @@
+---
+layout: post
+title:  "Pinky's Palace v3 Writeup"
+date:   2018-05-28 01:00:00 +0100
+categories: [pinky]
+description: ""
+image:
+  feature: pinkyv3.jpg
+  credit:
 
-  
-  
+---
   
   
 Enumeration  
