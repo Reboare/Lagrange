@@ -9,7 +9,7 @@ image:
   credit:
 ---
 
-A rather different one from the usual, as in this writeup I'll be tackling Pinky's Palace v3 by [@Pink_Panther](https://twitter.com/@Pink_P4nther).  This is probably at around the Intermediate/Hard level, and it teaches some very important things about the way in which you approach your enumeration methodology (one which caught me out for a couple of days and required a nudge to move forward).  I haven't done levels 0-2 but considering the difficulty of some of these challenges I imagine they'd be good introductions to some of the concepts here.
+A rather different one from the usual, as in this writeup I'll be tackling [Pinky's Palace v3](https://pinkysplanet.net/pinkys-palacev3/) by [@Pink_Panther](https://twitter.com/@Pink_P4nther).  This is probably at around the Intermediate/Hard level, and it teaches some very important things about the way in which you approach your enumeration methodology (one which caught me out for a couple of days and required a nudge to move forward).  I haven't done levels 0-2 but considering the difficulty of some of these challenges I imagine they'd be good introductions to some of the concepts here.
 
 Without further ado, let's put on some [tunes](https://www.youtube.com/watch?v=S4g7mPUskW8) and begin!
   
