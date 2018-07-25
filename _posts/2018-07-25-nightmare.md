@@ -181,6 +181,7 @@ Parameter: user (POST)
 [12:51:59] [INFO] the back-end DBMS is MySQL
 back-end DBMS: MySQL n 
 ```
+
 SFTP Exploit
 ------------
 Testing each of these credentials on port 2222's SSH reveals only `ftpuser` can authenticate, but we're greeted with a strange error:
@@ -211,7 +212,6 @@ sshd: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically l
 Since there's no 32-bit proof-of-concept available, we'll have to either modify the above exploit or create our own.
 
 ### /proc/self/mem Overwrite
-
 In Linux machines, all information relating to processes is stored within the /proc/ folder.  Within this are a number of folders named after the associated process pid's and within these we'll find such as `cmdline`, which contains the command that originally started the process and `maps` which shows the virtual memory addresses of the stack, heap and assorted libraries.  Importantly in this case, it also contains the `mem` file which represents the virtual memory of the process itself.  
 
 If we control `mem` we directly control the memory and therefore execution.  This exploit works by opening the file and writing at the stack head a string to execute.  At the stack tail it writes a rop chain to call system with the start of the stack as the input string.  Between the head and the tail it then writes in a sequence of `ret` instructions until the EIP register is overwritten.  At this point, execution will follow our `ret` chain until it hits our ROP chain at the stack tail.  You've probably used [CVE-2012-0056](https://git.zx2c4.com/CVE-2012-0056/about/), also known as mempodipper, at some point in any number of boot2roots.  This works on the same principle.
