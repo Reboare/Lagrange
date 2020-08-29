@@ -5,7 +5,7 @@ date:   2020-08-29 01:00:00 +0100
 categories: [vmware]
 description: ""
 image:
-  feature: slae.png
+  feature: aws.png
   credit:
 ---
 
@@ -13,7 +13,7 @@ This is a short post covering the steps to convert an AWS AMI to a VMDK.
 
 Step 1
 ------
-Follow the instructions at ![https://docs.aws.amazon.com/vm-import/latest/userguide/vmexport_image.html](https://docs.aws.amazon.com/vm-import/latest/userguide/vmexport_image.html) in order to export a vmdk to an S3 bucket
+Follow the instructions at [https://docs.aws.amazon.com/vm-import/latest/userguide/vmexport_image.html](https://docs.aws.amazon.com/vm-import/latest/userguide/vmexport_image.html) in order to export a vmdk to an S3 bucket
 
 Step 2
 -----
